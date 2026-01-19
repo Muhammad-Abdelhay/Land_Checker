@@ -3,11 +3,29 @@ import xml.etree.ElementTree as ET
 from shapely.geometry import Point, Polygon
 import os
 import re
+import folium
+from streamlit_folium import st_folium
 
-# --- إعدادات الصفحة ---
+# --- 1. إعدادات الصفحة ---
 st.set_page_config(page_title="Urban Cordon Checker", page_icon="🌍")
 
-# اسم ملف الخريطة
+# --- 2. كود الإخفاء (CSS) ---
+hide_streamlit_style = """
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+.stApp > header {display: none;}
+</style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+# --- 3. تهيئة ذاكرة الجلسة (Session State) ---
+# هذا هو الجزء الذي يحل مشكلة اختفاء الخريطة
+if 'search_result' not in st.session_state:
+    st.session_state.search_result = None
+
+# --- 4. المتغيرات والدوال ---
 KML_FILE_NAME = 'Outer_Boundary_Only.kml'
 
 def convert_dms_to_decimal(dms_string):
@@ -25,7 +43,7 @@ def convert_dms_to_decimal(dms_string):
             decimals.append(val)
         
         if len(decimals) == 2:
-            return decimals[0], decimals[1] # Lat, Lon
+            return decimals[0], decimals[1]
         return None
     except:
         return None
@@ -34,7 +52,7 @@ def load_kml_boundary(file_path):
     """قراءة ملف الخريطة وتحويله إلى شكل هندسي"""
     if not os.path.exists(file_path):
         st.error(f"⚠️ خطأ: ملف الخريطة '{file_path}' غير موجود!")
-        return None
+        return None, []
 
     try:
         tree = ET.parse(file_path)
@@ -45,39 +63,43 @@ def load_kml_boundary(file_path):
             coordinates_text += coord_elem.text + " "
             
         points = []
+        folium_coords = [] 
+        
         for coords in coordinates_text.strip().split():
             try:
                 parts = coords.split(',')
                 lon = float(parts[0])
                 lat = float(parts[1])
                 points.append((lon, lat))
+                folium_coords.append((lat, lon))
             except:
                 continue
         
         if len(points) > 2:
-            return Polygon(points)
-        return None
+            return Polygon(points), folium_coords
+        return None, []
     except Exception as e:
         st.error(f"حدث خطأ أثناء قراءة الملف: {e}")
-        return None
+        return None, []
 
-# --- واجهة التطبيق ---
+# --- 5. واجهة التطبيق ---
 st.title("🌍 كشف الحيز العمراني (مشروع كاردون)")
 st.write("أدخل إحداثيات قطعة الأرض لمعرفة هل هي داخل الحيز العمراني أم لا.")
 
-# تحميل الحدود
-boundary = load_kml_boundary(KML_FILE_NAME)
+# تحميل الحدود مرة واحدة
+boundary_polygon, boundary_coords_visual = load_kml_boundary(KML_FILE_NAME)
 
-if boundary:
-    # خانة إدخال البيانات
-    user_input = st.text_input("📍 أدخل الإحداثيات هنا (يقبل الصيغة العشرية أو الدرجات والدقائق):", placeholder="مثال: 30.742, 31.298 أو 30°44'00.5\"N...")
+if boundary_polygon:
+    # خانة الإدخال
+    user_input = st.text_input("📍 أدخل الإحداثيات هنا:", placeholder="مثال: 30.727313, 31.284638")
 
-    if st.button("فحص الموقع"):
+    # زر الفحص
+    if st.button("فحص الموقع ورسم الخريطة"):
         if user_input:
             lat = None
             lon = None
             
-            # محاولة قراءة الصيغة العشرية المباشرة
+            # محاولة قراءة الصيغة العشرية
             try:
                 clean_input = user_input.replace(',', ' ').split()
                 if len(clean_input) >= 2:
@@ -86,23 +108,65 @@ if boundary:
             except:
                 pass
 
-            # إذا فشل العشري، نجرب صيغة الدرجات والدقائق
+            # محاولة قراءة الدرجات والدقائق
             if lat is None:
                 dms_result = convert_dms_to_decimal(user_input)
                 if dms_result:
                     lat, lon = dms_result
 
-            # الفحص النهائي
+            # تخزين النتيجة في الذاكرة لكي لا تختفي
             if lat is not None and lon is not None:
-                # ملاحظة: Shapely تستخدم (x, y) يعني (Longitude, Latitude)
                 point = Point(lon, lat)
+                is_inside = boundary_polygon.contains(point)
                 
-                if boundary.contains(point):
-                    st.success("✅ النتيجة: الأرض **داخل** الحيز العمراني (مبروك!) 🏘️")
-                    st.balloons()
-                else:
-                    st.error("⛔ النتيجة: الأرض **خارج** الحيز العمراني. 🌾")
-                
-                st.info(f"الإحداثيات التي تم فحصها: \n خط العرض: {lat} \n خط الطول: {lon}")
+                # حفظ البيانات في Session State
+                st.session_state.search_result = {
+                    'lat': lat,
+                    'lon': lon,
+                    'is_inside': is_inside
+                }
             else:
-                st.warning("❌ لم يتم التعرف على الإحداثيات. تأكد من نسخها بشكل صحيح من خرائط جوجل.")
+                st.warning("❌ لم يتم التعرف على الإحداثيات. تأكد من الأرقام.")
+                st.session_state.search_result = None
+
+    # --- عرض النتيجة والخريطة (من الذاكرة) ---
+    # هذا الجزء خارج شرط الزر، لذلك سيبقى ظاهراً دائماً طالما هناك نتيجة محفوظة
+    if st.session_state.search_result is not None:
+        result = st.session_state.search_result
+        lat = result['lat']
+        lon = result['lon']
+        is_inside = result['is_inside']
+
+        st.markdown("---") # فاصل خطي
+
+        # 1. عرض النتيجة النصية
+        if is_inside:
+            st.success("✅ النتيجة: الأرض **داخل** الحيز العمراني (مبروك!) 🏘️")
+        else:
+            st.error("⛔ النتيجة: الأرض **خارج** الحيز العمراني. 🌾")
+        
+        st.info(f"الإحداثيات: {lat}, {lon}")
+
+        # 2. رسم الخريطة
+        st.write("### 🗺️ الخريطة التوضيحية:")
+        
+        m = folium.Map(location=[lat, lon], zoom_start=16)
+
+        # رسم الحيز
+        folium.Polygon(
+            locations=boundary_coords_visual,
+            color="yellow",
+            weight=4,
+            fill=True,
+            fill_opacity=0.2,
+            popup="حدود الحيز العمراني"
+        ).add_to(m)
+
+        # رسم الدبوس
+        folium.Marker(
+            [lat, lon],
+            popup=f"موقع الأرض\n({is_inside and 'داخل الحيز' or 'خارج الحيز'})",
+            icon=folium.Icon(color="red" if not is_inside else "green", icon="info-sign")
+        ).add_to(m)
+
+        st_folium(m, width=700, height=500)
