@@ -2,12 +2,11 @@ import streamlit as st
 import xml.etree.ElementTree as ET
 from shapely.geometry import Point, Polygon
 import os
-import re
 import folium
 from streamlit_folium import st_folium
 
 # --- 1. إعدادات الصفحة ---
-st.set_page_config(page_title="Urban Cordon Checker", page_icon="🌍")
+st.set_page_config(page_title="محدد الحيز العمراني المطور", page_icon="🌍")
 
 # --- 2. كود الإخفاء (CSS) ---
 hide_streamlit_style = """
@@ -20,153 +19,135 @@ header {visibility: hidden;}
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# --- 3. تهيئة ذاكرة الجلسة (Session State) ---
-# هذا هو الجزء الذي يحل مشكلة اختفاء الخريطة
-if 'search_result' not in st.session_state:
-    st.session_state.search_result = None
-
-# --- 4. المتغيرات والدوال ---
+# --- 3. دوال قراءة ملف KML (كما هي في كودك القديم) ---
 KML_FILE_NAME = 'Outer_Boundary_Only.kml'
-
-def convert_dms_to_decimal(dms_string):
-    """تحويل الإحداثيات من صيغة الدرجات والدقائق إلى عشري"""
-    try:
-        parts = re.findall(r"(\d+)[°](\d+)['](\d+\.?\d*)[\"]([NSEW])", dms_string)
-        decimals = []
-        for part in parts:
-            deg = float(part[0])
-            min_ = float(part[1])
-            sec = float(part[2])
-            direction = part[3]
-            val = deg + (min_ / 60) + (sec / 3600)
-            if direction in ['S', 'W']: val = -val
-            decimals.append(val)
-        
-        if len(decimals) == 2:
-            return decimals[0], decimals[1]
-        return None
-    except:
-        return None
 
 def load_kml_boundary(file_path):
     """قراءة ملف الخريطة وتحويله إلى شكل هندسي"""
     if not os.path.exists(file_path):
         st.error(f"⚠️ خطأ: ملف الخريطة '{file_path}' غير موجود!")
-        return None, []
+        return None, None, []
 
     try:
         tree = ET.parse(file_path)
         root = tree.getroot()
         namespace = {'kml': 'http://www.opengis.net/kml/2.2'}
         coordinates_text = ""
+        # البحث عن الإحداثيات داخل ملف KML
         for coord_elem in root.findall('.//kml:coordinates', namespace):
             coordinates_text += coord_elem.text + " "
             
         points = []
         folium_coords = [] 
         
+        # معالجة النصوص وتحويلها لأرقام
         for coords in coordinates_text.strip().split():
             try:
                 parts = coords.split(',')
                 lon = float(parts[0])
                 lat = float(parts[1])
-                points.append((lon, lat))
-                folium_coords.append((lat, lon))
+                points.append((lon, lat))     # صيغة (X, Y) للمكتبة الهندسية
+                folium_coords.append((lat, lon)) # صيغة (Lat, Lon) لرسم الخريطة
             except:
                 continue
         
         if len(points) > 2:
-            return Polygon(points), folium_coords
-        return None, []
+            poly = Polygon(points)
+            # نرجع المضلع + نقطة المنتصف (لتركيز الخريطة عليها في البداية) + إحداثيات الرسم
+            return poly, poly.centroid, folium_coords
+        return None, None, []
     except Exception as e:
         st.error(f"حدث خطأ أثناء قراءة الملف: {e}")
-        return None, []
+        return None, None, []
+
+# --- 4. تحميل البيانات وإعداد الجلسة (Session State) ---
+
+# تحميل الحدود
+boundary_polygon, centroid, boundary_coords_visual = load_kml_boundary(KML_FILE_NAME)
+
+# تحديد نقطة البداية الافتراضية (إما منتصف الحيز أو نقطة عامة)
+default_lat = centroid.y if centroid else 30.0
+default_lon = centroid.x if centroid else 31.0
+
+# تهيئة الذاكرة للربط بين الخريطة والإدخال اليدوي
+if 'lat' not in st.session_state:
+    st.session_state.lat = default_lat
+if 'lng' not in st.session_state:
+    st.session_state.lng = default_lon
 
 # --- 5. واجهة التطبيق ---
-st.title("🌍 كشف الحيز العمراني (مشروع كاردون)")
-st.write("أدخل إحداثيات قطعة الأرض لمعرفة هل هي داخل الحيز العمراني أم لا.")
+st.title("🌍 كشف الحيز العمراني (Hybrid)")
+st.write("اضغط على موقع الأرض في الخريطة أو أدخل الإحداثيات يدوياً.")
 
-# تحميل الحدود مرة واحدة
-boundary_polygon, boundary_coords_visual = load_kml_boundary(KML_FILE_NAME)
+# خانات الإدخال (مرتبطة بالذاكرة key)
+col1, col2 = st.columns(2)
+with col1:
+    st.number_input("دائرة العرض (Latitude)", value=st.session_state.lat, format="%.6f", key='lat')
+with col2:
+    st.number_input("خط الطول (Longitude)", value=st.session_state.lng, format="%.6f", key='lng')
+
+# --- 6. إعداد ورسم الخريطة ---
+
+# إنشاء الخريطة بمركزها الحالي
+m = folium.Map(location=[st.session_state.lat, st.session_state.lng], zoom_start=17)
+
+# أ) إضافة طبقة Google Satellite Hybrid (أقمار صناعية + شوارع)
+folium.TileLayer(
+    tiles='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    attr='Google',
+    name='Google Satellite',
+    overlay=False,
+    control=True
+).add_to(m)
+
+# ب) رسم حدود الحيز العمراني (الأصفر)
+if boundary_coords_visual:
+    folium.Polygon(
+        locations=boundary_coords_visual,
+        color="yellow",
+        weight=3,
+        fill=True,
+        fill_opacity=0.1,
+        popup="حدود الحيز العمراني"
+    ).add_to(m)
+
+# ج) رسم دبوس الموقع الحالي
+folium.Marker(
+    [st.session_state.lat, st.session_state.lng],
+    popup="الموقع المحدد",
+    icon=folium.Icon(color="red", icon="info-sign")
+).add_to(m)
+
+# د) إضافة زر التحكم في الطبقات
+folium.LayerControl().add_to(m)
+
+# هـ) عرض الخريطة وتفعيل التفاعل
+st.write("👇 **الخريطة تفاعلية: اضغط لتغيير الموقع**")
+map_data = st_folium(m, width=700, height=500)
+
+# --- 7. منطق التحديث عند الضغط ---
+if map_data['last_clicked']:
+    clicked_lat = map_data['last_clicked']['lat']
+    clicked_lng = map_data['last_clicked']['lng']
+    
+    # التحقق هل تغير الموقع؟ إذا نعم، نحدث الذاكرة ونعيد التحميل
+    # (نستخدم تقريب بسيط لتجنب التحديث اللانهائي بسبب الفواصل العشرية الدقيقة)
+    if abs(clicked_lat - st.session_state.lat) > 0.000001 or abs(clicked_lng - st.session_state.lng) > 0.000001:
+        st.session_state.lat = clicked_lat
+        st.session_state.lng = clicked_lng
+        st.rerun()
+
+# --- 8. الفحص وإظهار النتيجة ---
+st.markdown("---")
 
 if boundary_polygon:
-    # خانة الإدخال
-    user_input = st.text_input("📍 أدخل الإحداثيات هنا:", placeholder="مثال: 30.727313, 31.284638")
+    # تكوين النقطة من الإحداثيات الحالية
+    user_point = Point(st.session_state.lng, st.session_state.lat) # انتبه: Shapely تأخذ (Lon, Lat)
+    is_inside = boundary_polygon.contains(user_point)
 
-    # زر الفحص
-    if st.button("فحص الموقع ورسم الخريطة"):
-        if user_input:
-            lat = None
-            lon = None
-            
-            # محاولة قراءة الصيغة العشرية
-            try:
-                clean_input = user_input.replace(',', ' ').split()
-                if len(clean_input) >= 2:
-                    lat = float(clean_input[0])
-                    lon = float(clean_input[1])
-            except:
-                pass
-
-            # محاولة قراءة الدرجات والدقائق
-            if lat is None:
-                dms_result = convert_dms_to_decimal(user_input)
-                if dms_result:
-                    lat, lon = dms_result
-
-            # تخزين النتيجة في الذاكرة لكي لا تختفي
-            if lat is not None and lon is not None:
-                point = Point(lon, lat)
-                is_inside = boundary_polygon.contains(point)
-                
-                # حفظ البيانات في Session State
-                st.session_state.search_result = {
-                    'lat': lat,
-                    'lon': lon,
-                    'is_inside': is_inside
-                }
-            else:
-                st.warning("❌ لم يتم التعرف على الإحداثيات. تأكد من الأرقام.")
-                st.session_state.search_result = None
-
-    # --- عرض النتيجة والخريطة (من الذاكرة) ---
-    # هذا الجزء خارج شرط الزر، لذلك سيبقى ظاهراً دائماً طالما هناك نتيجة محفوظة
-    if st.session_state.search_result is not None:
-        result = st.session_state.search_result
-        lat = result['lat']
-        lon = result['lon']
-        is_inside = result['is_inside']
-
-        st.markdown("---") # فاصل خطي
-
-        # 1. عرض النتيجة النصية
-        if is_inside:
-            st.success("✅ النتيجة: الأرض **داخل** الحيز العمراني (مبروك!) 🏘️")
-        else:
-            st.error("⛔ النتيجة: الأرض **خارج** الحيز العمراني. 🌾")
-        
-        st.info(f"الإحداثيات: {lat}, {lon}")
-
-        # 2. رسم الخريطة
-        st.write("### 🗺️ الخريطة التوضيحية:")
-        
-        m = folium.Map(location=[lat, lon], zoom_start=16)
-
-        # رسم الحيز
-        folium.Polygon(
-            locations=boundary_coords_visual,
-            color="yellow",
-            weight=4,
-            fill=True,
-            fill_opacity=0.2,
-            popup="حدود الحيز العمراني"
-        ).add_to(m)
-
-        # رسم الدبوس
-        folium.Marker(
-            [lat, lon],
-            popup=f"موقع الأرض\n({is_inside and 'داخل الحيز' or 'خارج الحيز'})",
-            icon=folium.Icon(color="red" if not is_inside else "green", icon="info-sign")
-        ).add_to(m)
-
-        st_folium(m, width=700, height=500)
+    if is_inside:
+        st.success(f"✅ مبروك! الموقع ({st.session_state.lat:.5f}, {st.session_state.lng:.5f}) يقع **داخل** الحيز العمراني.")
+    else:
+        st.error(f"❌ الموقع ({st.session_state.lat:.5f}, {st.session_state.lng:.5f}) يقع **خارج** الحيز العمراني.")
+else:
+    st.warning("⚠️ لم يتم تحميل ملف الحدود، لا يمكن إجراء الفحص.")
