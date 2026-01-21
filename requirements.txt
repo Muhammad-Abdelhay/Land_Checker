@@ -1,4 +1,5 @@
 streamlit
-shapely
 folium
 streamlit-folium
+shapely
+streamlit-js-eval
