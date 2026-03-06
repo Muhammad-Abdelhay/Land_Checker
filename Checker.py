@@ -1,8 +1,3 @@
-"""
-Urban Cordon Checker - كشف الحيز العمراني
-نسخة احترافية محسّنة
-"""
-
 import re
 import streamlit as st
 from shapely.geometry import Point, Polygon
@@ -158,16 +153,26 @@ div[data-testid="stInfo"] {
 }
 
 hr { border-color: rgba(255,255,255,0.08) !important; }
-
 div[data-testid="stIframe"] > iframe { border-radius: 14px !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 3.  حدود الحيز العمراني (205 نقطة) — (lat, lon)
+# 3.  النقاط — مضلعان منفصلان
 # ─────────────────────────────────────────────
-BOUNDARY_POINTS: list[tuple[float, float]] = [
-    (30.722009, 31.295623), (30.721122, 31.295481), (30.721285, 31.294259), (30.722031, 31.294366), (30.725045, 31.294755),
+
+# المنطقة الأولى: المربع الصغير (أول 4 نقاط)
+BOUNDARY_POINTS_1: list[tuple[float, float]] = [
+    (30.722009, 31.295623),
+    (30.721122, 31.295481),
+    (30.721285, 31.294259),
+    (30.722031, 31.294366),
+    (30.722009, 31.295623),  # إغلاق المضلع
+]
+
+# المنطقة الثانية: المنطقة الكبيرة (النقاط 5 → 205)
+BOUNDARY_POINTS_2: list[tuple[float, float]] = [
+    (30.725045, 31.294755),
     (30.730050, 31.302733), (30.730125, 31.302278), (30.729349, 31.302003), (30.729198, 31.302683), (30.729641, 31.302797),
     (30.729435, 31.303796), (30.727487, 31.303334), (30.727292, 31.304539), (30.726293, 31.304657), (30.726367, 31.304013),
     (30.725509, 31.303733), (30.725668, 31.303050), (30.725328, 31.302976), (30.725102, 31.302035), (30.724626, 31.301933),
@@ -208,23 +213,24 @@ BOUNDARY_POINTS: list[tuple[float, float]] = [
     (30.733325, 31.302837), (30.733228, 31.303085), (30.733124, 31.303040), (30.732857, 31.304064), (30.732406, 31.303793),
     (30.732351, 31.304903), (30.731808, 31.304799), (30.731905, 31.304481), (30.730897, 31.304118), (30.730894, 31.304281),
     (30.731161, 31.304519), (30.731154, 31.303862), (30.730056, 31.303467), (30.730106, 31.303235), (30.729515, 31.303288),
-    (30.722009, 31.295623),  # إغلاق المضلع
+    (30.725045, 31.294755),  # إغلاق المضلع
 ]
 
 # ─────────────────────────────────────────────
-# 4.  بناء المضلع (مرة واحدة فقط)
+# 4.  بناء المضلعين
 # ─────────────────────────────────────────────
 @st.cache_resource
-def build_polygon() -> Polygon:
-    return Polygon([(lon, lat) for lat, lon in BOUNDARY_POINTS])
+def build_polygons() -> tuple:
+    poly1 = Polygon([(lon, lat) for lat, lon in BOUNDARY_POINTS_1])
+    poly2 = Polygon([(lon, lat) for lat, lon in BOUNDARY_POINTS_2])
+    return poly1, poly2
 
-boundary_polygon = build_polygon()
+polygon1, polygon2 = build_polygons()
 
 # ─────────────────────────────────────────────
 # 5.  دوال مساعدة
 # ─────────────────────────────────────────────
 def parse_dms(text: str) -> tuple | None:
-    """تحويل صيغة DMS إلى عشري."""
     parts = re.findall(r"(\d+)[°](\d+)['](\d+\.?\d*)[\"]([NSEW])", text)
     if len(parts) < 2:
         return None
@@ -238,7 +244,6 @@ def parse_dms(text: str) -> tuple | None:
 
 
 def parse_coords(text: str) -> tuple | None:
-    """تحليل الإحداثيات من نص المستخدم (عشري أو DMS)."""
     try:
         parts = text.replace(",", " ").split()
         if len(parts) >= 2:
@@ -251,7 +256,6 @@ def parse_coords(text: str) -> tuple | None:
 
 
 def build_map(lat: float, lon: float, is_inside: bool) -> folium.Map:
-    """إنشاء خريطة Folium احترافية."""
     m = folium.Map(location=[lat, lon], zoom_start=17, tiles=None, prefer_canvas=True)
 
     folium.TileLayer(
@@ -270,14 +274,26 @@ def build_map(lat: float, lon: float, is_inside: bool) -> folium.Map:
         control=True,
     ).add_to(m)
 
+    # رسم المضلع الأول (المربع الصغير)
     folium.Polygon(
-        locations=BOUNDARY_POINTS,
+        locations=BOUNDARY_POINTS_1,
         color="#FFD700",
         weight=2.5,
         fill=True,
         fill_color="#FFD700",
-        fill_opacity=0.12,
-        tooltip="حدود الحيز العمراني",
+        fill_opacity=0.2,
+        tooltip="الحيز العمراني - المنطقة الأولى",
+    ).add_to(m)
+
+    # رسم المضلع الثاني (المنطقة الكبيرة)
+    folium.Polygon(
+        locations=BOUNDARY_POINTS_2,
+        color="#FFD700",
+        weight=2.5,
+        fill=True,
+        fill_color="#FFD700",
+        fill_opacity=0.2,
+        tooltip="الحيز العمراني - المنطقة الثانية",
     ).add_to(m)
 
     status_text = "داخل الحيز العمراني ✅" if is_inside else "خارج الحيز العمراني ⛔"
@@ -360,7 +376,8 @@ if check_clicked:
         if parsed:
             lat, lon = parsed
             point = Point(lon, lat)
-            is_inside = boundary_polygon.contains(point)
+            # التحقق من المنطقتين معاً
+            is_inside = polygon1.contains(point) or polygon2.contains(point)
             st.session_state.search_result = {"lat": lat, "lon": lon, "is_inside": is_inside}
         else:
             st.error("❌ صيغة الإحداثيات غير صحيحة. تأكد من الإدخال.")
