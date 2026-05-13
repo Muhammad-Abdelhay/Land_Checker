@@ -1,3 +1,4 @@
+import re
 import streamlit as st
 from shapely.geometry import Point, Polygon
 import folium
@@ -21,9 +22,6 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap');
 
-/* ═══════════════════════════════════════
-   المتغيرات (CSS Variables)
-═══════════════════════════════════════ */
 :root {
     --bg-deep:      #060d17;
     --bg-mid:       #0c1929;
@@ -43,9 +41,6 @@ st.markdown("""
     --radius-md:    10px;
 }
 
-/* ═══════════════════════════════════════
-   إعداد عام
-═══════════════════════════════════════ */
 * { font-family: 'Cairo', 'Tajawal', sans-serif !important; direction: rtl; text-align: right; box-sizing: border-box; }
 
 html, body, .stApp {
@@ -53,7 +48,6 @@ html, body, .stApp {
     color: var(--text-primary) !important;
 }
 
-/* نمط خلفية شبكي متحرك */
 .stApp::before {
     content: '';
     position: fixed;
@@ -66,14 +60,10 @@ html, body, .stApp {
     z-index: 0;
 }
 
-/* إخفاء العناصر الافتراضية */
 #MainMenu, footer, header,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"] { display: none !important; }
 
-/* ═══════════════════════════════════════
-   الترويسة الرئيسية
-═══════════════════════════════════════ */
 .hero-header {
     position: relative;
     overflow: hidden;
@@ -133,9 +123,6 @@ html, body, .stApp {
     line-height: 1.7;
 }
 
-/* ═══════════════════════════════════════
-   بطاقات الإدخال
-═══════════════════════════════════════ */
 .panel-card {
     background: var(--bg-card);
     border: 1px solid var(--border-soft);
@@ -166,9 +153,6 @@ html, body, .stApp {
     font-size: 1rem;
 }
 
-/* ═══════════════════════════════════════
-   مؤشرات الإحصاءات في الأعلى
-═══════════════════════════════════════ */
 .stats-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -197,9 +181,6 @@ html, body, .stApp {
     font-weight: 500;
 }
 
-/* ═══════════════════════════════════════
-   نتيجة الفحص (Result Banners)
-═══════════════════════════════════════ */
 .result-wrap {
     border-radius: var(--radius-lg);
     padding: 1.5rem 2rem;
@@ -241,9 +222,6 @@ html, body, .stApp {
     margin-top: 0.2rem;
 }
 
-/* ═══════════════════════════════════════
-   بطاقة الإحداثيات
-═══════════════════════════════════════ */
 .coords-card {
     background: rgba(0,212,255,0.04);
     border: 1px solid rgba(0,212,255,0.15);
@@ -269,23 +247,65 @@ html, body, .stApp {
 .coords-label { font-size: 0.78rem; color: var(--text-muted); }
 .coords-value { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 
-/* ═══════════════════════════════════════
-   تخصيص Streamlit Widgets
-═══════════════════════════════════════ */
-/* حقول الإدخال */
+/* ── حقل الإدخال – live display ── */
 div[data-testid="stTextInput"] input {
     background: rgba(255,255,255,0.04) !important;
     border: 1px solid rgba(0,212,255,0.2) !important;
     border-radius: 10px !important;
     color: var(--text-primary) !important;
     padding: 0.65rem 1rem !important;
-    font-size: 0.95rem !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
     transition: border-color 0.2s, box-shadow 0.2s !important;
+    caret-color: var(--accent-cyan) !important;
 }
 div[data-testid="stTextInput"] input:focus {
     border-color: var(--accent-cyan) !important;
     box-shadow: 0 0 0 3px rgba(0,212,255,0.12) !important;
     outline: none !important;
+}
+div[data-testid="stTextInput"] input::placeholder {
+    color: rgba(122,154,181,0.45) !important;
+    font-size: 0.88rem !important;
+    font-weight: 400 !important;
+}
+
+/* ── زر GPS (toggle) ── */
+.gps-btn-off, .gps-btn-on {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.7rem 1.2rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid;
+    margin-bottom: 0.5rem;
+}
+.gps-btn-off {
+    background: rgba(122,154,181,0.08);
+    border-color: rgba(122,154,181,0.3);
+    color: #7a9ab5;
+}
+.gps-btn-off:hover {
+    background: rgba(122,154,181,0.15);
+    border-color: rgba(122,154,181,0.5);
+}
+.gps-btn-on {
+    background: rgba(0,229,160,0.1);
+    border-color: rgba(0,229,160,0.5);
+    color: #00e5a0;
+    box-shadow: 0 0 18px rgba(0,229,160,0.2);
+    animation: glowGreen 2s infinite;
+}
+@keyframes glowGreen {
+    0%,100% { box-shadow: 0 0 12px rgba(0,229,160,0.2); }
+    50%      { box-shadow: 0 0 24px rgba(0,229,160,0.4); }
 }
 
 /* الأزرار العامة */
@@ -306,7 +326,7 @@ div[data-testid="stButton"] > button:hover {
     transform: translateY(-2px) !important;
 }
 
-/* زر الإرسال (Form Submit) */
+/* زر الإرسال */
 div[data-testid="stFormSubmitButton"] > button {
     background: linear-gradient(135deg, #0062cc, #00b4d8) !important;
     border: none !important;
@@ -326,7 +346,6 @@ div[data-testid="stFormSubmitButton"] > button:hover {
     background: linear-gradient(135deg, #0070e0, #00c8f0) !important;
 }
 
-/* تسميات Streamlit */
 div[data-testid="stTextInput"] label,
 div[data-testid="stSelectbox"] label {
     color: var(--text-muted) !important;
@@ -337,19 +356,14 @@ div[data-testid="stSelectbox"] label {
     margin-bottom: 0.3rem !important;
 }
 
-/* رسائل التنبيه */
 div[data-testid="stAlert"] {
     border-radius: 10px !important;
     border-left: 3px solid var(--accent-gold) !important;
     background: rgba(240,180,41,0.07) !important;
 }
 
-/* Spinner */
 div[data-testid="stSpinner"] p { color: var(--text-muted) !important; }
 
-/* ═══════════════════════════════════════
-   شاشة الانتظار / Welcome Placeholder
-═══════════════════════════════════════ */
 .placeholder-screen {
     height: 520px;
     display: flex;
@@ -382,7 +396,6 @@ div[data-testid="stSpinner"] p { color: var(--text-muted) !important; }
     line-height: 1.7;
 }
 
-/* خط الفصل الأنيق */
 .divider {
     display: flex;
     align-items: center;
@@ -398,9 +411,6 @@ div[data-testid="stSpinner"] p { color: var(--text-muted) !important; }
     background: var(--border-soft);
 }
 
-/* ═══════════════════════════════════════
-   عنوان خريطة مضمنة
-═══════════════════════════════════════ */
 .map-header {
     display: flex;
     align-items: center;
@@ -430,7 +440,37 @@ div[data-testid="stSpinner"] p { color: var(--text-muted) !important; }
     50%      { opacity: 0.5; }
 }
 
-/* خلفية المقاطعة (stBlock) */
+/* live coords preview box */
+.live-coords-preview {
+    background: rgba(0,212,255,0.05);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 10px;
+    padding: 0.65rem 1rem;
+    margin-top: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 42px;
+}
+.live-coords-preview .lc-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.live-coords-preview .lc-value {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+    word-break: break-all;
+}
+.live-coords-preview .lc-empty {
+    font-size: 0.82rem;
+    color: rgba(122,154,181,0.35);
+    font-style: italic;
+}
+
 section[data-testid="stSidebar"] { background: var(--bg-mid) !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -543,7 +583,6 @@ def build_map(lat: float, lon: float, is_inside: bool):
         tiles=None
     )
 
-    # طبقات الخرائط
     folium.TileLayer(
         tiles="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
         attr="Google Satellite",
@@ -557,16 +596,13 @@ def build_map(lat: float, lon: float, is_inside: bool):
         overlay=False
     ).add_to(m)
 
-    # تنسيق المضلعات بلون متناسق
     poly_kw = dict(color="#00d4ff", weight=2.5, fillColor="#00b4d8", fillOpacity=0.12, dashArray="")
     folium.Polygon(locations=BOUNDARY_POINTS_1, **poly_kw, tooltip="<b>المنطقة الأولى</b>").add_to(m)
     folium.Polygon(locations=BOUNDARY_POINTS_2, **poly_kw, tooltip="<b>المنطقة الثانية</b>").add_to(m)
 
-    # نقطة الموقع
     color = "#00e5a0" if is_inside else "#ff5c7a"
     status = "✅ داخل الحيز" if is_inside else "⛔ خارج الحيز"
 
-    # دائرة النبض
     folium.CircleMarker(
         location=[lat, lon],
         radius=22, color=color, weight=1.5,
@@ -578,7 +614,6 @@ def build_map(lat: float, lon: float, is_inside: bool):
         fill=True, fill_color=color, fill_opacity=0.4
     ).add_to(m)
 
-    # Marker الرئيسي
     folium.Marker(
         location=[lat, lon],
         tooltip=folium.Tooltip(
@@ -600,10 +635,17 @@ def build_map(lat: float, lon: float, is_inside: bool):
     return m
 
 # ─────────────────────────────────────────────
-# 5. الواجهة الرئيسية (UI)
+# 5. تهيئة حالة الجلسة
+# ─────────────────────────────────────────────
+if "gps_enabled" not in st.session_state:
+    st.session_state.gps_enabled = False
+if "input_coords" not in st.session_state:
+    st.session_state.input_coords = ""
+
+# ─────────────────────────────────────────────
+# 6. الواجهة الرئيسية (UI)
 # ─────────────────────────────────────────────
 
-# ── الترويسة ──────────────────────────────────
 st.markdown("""
 <div class="hero-header">
     <div class="hero-badge">🏙️ نظام ذكي &nbsp;|&nbsp; إصدار 2.0</div>
@@ -615,7 +657,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── إحصاءات سريعة ──────────────────────────────
 st.markdown("""
 <div class="stats-row">
     <div class="stat-chip">
@@ -633,7 +674,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── تقسيم الشاشة ──────────────────────────────
 col_input, col_result = st.columns([1, 2.2], gap="large")
 
 # ════════════════════════════════════════════
@@ -641,7 +681,7 @@ col_input, col_result = st.columns([1, 2.2], gap="large")
 # ════════════════════════════════════════════
 with col_input:
 
-    # بطاقة GPS
+    # ── بطاقة GPS مع زر التفعيل/الإيقاف ──
     st.markdown("""
     <div class="panel-card">
         <div class="panel-title">
@@ -649,26 +689,42 @@ with col_input:
             تحديد الموقع تلقائياً
         </div>
         <p style="font-size:0.85rem;color:#7a9ab5;margin:0 0 1rem;">
-            انقر لالتقاط إحداثياتك الحالية عبر GPS الجهاز مباشرةً
+            فعّل GPS للتقاط إحداثياتك الحالية من الجهاز مباشرةً
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # GPS widget
-    try:
-        loc = get_geolocation(component_key="get_loc")
-        if loc and "coords" in loc:
-            gps_lat = loc["coords"]["latitude"]
-            gps_lon = loc["coords"]["longitude"]
-            st.session_state.input_coords = f"{gps_lat:.6f}, {gps_lon:.6f}"
-            st.success(f"✅ تم التقاط الموقع: {gps_lat:.5f}, {gps_lon:.5f}")
-    except Exception:
-        pass
+    # زر التبديل (toggle)
+    if st.session_state.gps_enabled:
+        btn_label = "📡  GPS مفعّل — انقر للإيقاف"
+        btn_style = "gps-btn-on"
+    else:
+        btn_label = "📡  تفعيل تحديد الموقع GPS"
+        btn_style = "gps-btn-off"
 
-    # خط الفصل
+    # نستخدم زر Streamlit العادي ونخصصه بـ CSS
+    gps_toggle = st.button(btn_label, key="gps_toggle_btn", use_container_width=True)
+    if gps_toggle:
+        st.session_state.gps_enabled = not st.session_state.gps_enabled
+        st.rerun()
+
+    # إذا كان GPS مفعلاً، اطلب الموقع
+    if st.session_state.gps_enabled:
+        try:
+            with st.spinner("⏳ جارٍ تحديد موقعك..."):
+                loc = get_geolocation(component_key="get_loc_active")
+            if loc and "coords" in loc:
+                gps_lat = loc["coords"]["latitude"]
+                gps_lon = loc["coords"]["longitude"]
+                st.session_state.input_coords = f"{gps_lat:.6f}, {gps_lon:.6f}"
+                st.success(f"✅ تم التقاط الموقع: {gps_lat:.5f}, {gps_lon:.5f}")
+        except Exception:
+            st.warning("⚠️ تعذّر الوصول إلى GPS. تحقق من صلاحيات الموقع في المتصفح.")
+
+    # خط فصل
     st.markdown('<div class="divider">أو أدخل يدوياً</div>', unsafe_allow_html=True)
 
-    # بطاقة الإدخال اليدوي
+    # ── بطاقة الإدخال اليدوي ──
     st.markdown("""
     <div class="panel-card">
         <div class="panel-title">
@@ -685,9 +741,39 @@ with col_input:
             placeholder="مثال:  30.727313, 31.284638",
             help="الصيغة العشرية: 30.727313, 31.284638  |  صيغة DMS: 30°43'38.3\"N 31°17'4.7\"E"
         )
+
+        # ── معاينة فورية للإحداثيات المُدخلة ──
+        if user_input and user_input.strip():
+            parsed_preview = parse_coords(user_input)
+            if parsed_preview:
+                prev_lat, prev_lon = parsed_preview
+                st.markdown(f"""
+                <div class="live-coords-preview">
+                    <span style="font-size:1rem">📍</span>
+                    <span class="lc-label">عرض:</span>
+                    <span class="lc-value">{prev_lat:.6f}</span>
+                    <span class="lc-label" style="margin-right:0.5rem">طول:</span>
+                    <span class="lc-value">{prev_lon:.6f}</span>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="live-coords-preview">
+                    <span style="font-size:1rem">⚠️</span>
+                    <span class="lc-empty">الصيغة غير صحيحة بعد — تابع الإدخال</span>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="live-coords-preview">
+                <span style="font-size:1rem; opacity:0.3">📍</span>
+                <span class="lc-empty">الإحداثيات ستظهر هنا أثناء الكتابة</span>
+            </div>
+            """, unsafe_allow_html=True)
+
         submitted = st.form_submit_button("🔍  بدء الفحص والاستعلام", use_container_width=True)
 
-    # ملاحظة مساعدة
+    # تلميح
     st.markdown("""
     <div style="margin-top:0.5rem;padding:0.75rem 1rem;background:rgba(240,180,41,0.06);
          border-right:3px solid rgba(240,180,41,0.5);border-radius:8px;">
@@ -712,7 +798,6 @@ with col_result:
                 point = Point(lon, lat)
                 is_inside = polygon1.contains(point) or polygon2.contains(point)
 
-                # ─ بانر النتيجة ─
                 if is_inside:
                     st.markdown("""
                     <div class="result-wrap result-inside">
@@ -734,7 +819,6 @@ with col_result:
                     </div>
                     """, unsafe_allow_html=True)
 
-                # ─ بطاقة الإحداثيات ─
                 st.markdown(f"""
                 <div class="coords-card">
                     <span class="coords-dot"></span>
@@ -747,7 +831,6 @@ with col_result:
                 </div>
                 """, unsafe_allow_html=True)
 
-                # ─ رأس الخريطة ─
                 st.markdown("""
                 <div class="map-header">
                     <span class="map-title">🗺️ الخريطة التفاعلية</span>
@@ -755,7 +838,6 @@ with col_result:
                 </div>
                 """, unsafe_allow_html=True)
 
-                # ─ الخريطة ─
                 with st.spinner("⏳ جارٍ تحميل الخريطة التفاعلية..."):
                     m = build_map(lat, lon, is_inside)
                     st_folium(m, width="100%", height=470, returned_objects=[])
@@ -764,7 +846,6 @@ with col_result:
                 st.error("❌ صيغة الإحداثيات غير صحيحة. يرجى التأكد من إدخال الأرقام بالشكل الصحيح مثل: **30.727313, 31.284638**")
 
     else:
-        # شاشة الترحيب
         st.markdown("""
         <div class="placeholder-screen">
             <div class="placeholder-icon">🗺️</div>
