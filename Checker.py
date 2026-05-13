@@ -1,12 +1,12 @@
-import re
 import streamlit as st
 from shapely.geometry import Point, Polygon
 import folium
 from streamlit_folium import st_folium
 from streamlit_js_eval import get_geolocation
+import re
 
 # ─────────────────────────────────────────────
-# 1. إعدادات الصفحة
+# 1. إعدادات الصفحة وتهيئة المتغيرات
 # ─────────────────────────────────────────────
 st.set_page_config(
     page_title="الحيز العمراني | نظام الاستعلام",
@@ -15,9 +15,17 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# تهيئة حالة زر الـ GPS
+if "gps_active" not in st.session_state:
+    st.session_state.gps_active = False
+
+def toggle_gps():
+    st.session_state.gps_active = not st.session_state.gps_active
+
 # ─────────────────────────────────────────────
 # 2. التنسيق (CSS) المحسّن
 # ─────────────────────────────────────────────
+# التنسيق الثابت
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap');
@@ -247,86 +255,21 @@ html, body, .stApp {
 .coords-label { font-size: 0.78rem; color: var(--text-muted); }
 .coords-value { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 
-/* ── حقل الإدخال – live display ── */
 div[data-testid="stTextInput"] input {
     background: rgba(255,255,255,0.04) !important;
     border: 1px solid rgba(0,212,255,0.2) !important;
     border-radius: 10px !important;
     color: var(--text-primary) !important;
     padding: 0.65rem 1rem !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
+    font-size: 0.95rem !important;
     transition: border-color 0.2s, box-shadow 0.2s !important;
-    caret-color: var(--accent-cyan) !important;
 }
 div[data-testid="stTextInput"] input:focus {
     border-color: var(--accent-cyan) !important;
     box-shadow: 0 0 0 3px rgba(0,212,255,0.12) !important;
     outline: none !important;
 }
-div[data-testid="stTextInput"] input::placeholder {
-    color: rgba(122,154,181,0.45) !important;
-    font-size: 0.88rem !important;
-    font-weight: 400 !important;
-}
 
-/* ── زر GPS (toggle) ── */
-.gps-btn-off, .gps-btn-on {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    width: 100%;
-    padding: 0.7rem 1.2rem;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    font-family: 'Cairo', sans-serif !important;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid;
-    margin-bottom: 0.5rem;
-}
-.gps-btn-off {
-    background: rgba(122,154,181,0.08);
-    border-color: rgba(122,154,181,0.3);
-    color: #7a9ab5;
-}
-.gps-btn-off:hover {
-    background: rgba(122,154,181,0.15);
-    border-color: rgba(122,154,181,0.5);
-}
-.gps-btn-on {
-    background: rgba(0,229,160,0.1);
-    border-color: rgba(0,229,160,0.5);
-    color: #00e5a0;
-    box-shadow: 0 0 18px rgba(0,229,160,0.2);
-    animation: glowGreen 2s infinite;
-}
-@keyframes glowGreen {
-    0%,100% { box-shadow: 0 0 12px rgba(0,229,160,0.2); }
-    50%      { box-shadow: 0 0 24px rgba(0,229,160,0.4); }
-}
-
-/* الأزرار العامة */
-div[data-testid="stButton"] > button {
-    background: var(--bg-surface) !important;
-    border: 1px solid rgba(0,212,255,0.3) !important;
-    color: var(--accent-cyan) !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    padding: 0.6rem 1.4rem !important;
-    transition: all 0.25s ease !important;
-    width: 100% !important;
-}
-div[data-testid="stButton"] > button:hover {
-    background: rgba(0,212,255,0.1) !important;
-    border-color: var(--accent-cyan) !important;
-    box-shadow: 0 4px 16px rgba(0,212,255,0.25) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* زر الإرسال */
 div[data-testid="stFormSubmitButton"] > button {
     background: linear-gradient(135deg, #0062cc, #00b4d8) !important;
     border: none !important;
@@ -440,38 +383,42 @@ div[data-testid="stSpinner"] p { color: var(--text-muted) !important; }
     50%      { opacity: 0.5; }
 }
 
-/* live coords preview box */
-.live-coords-preview {
-    background: rgba(0,212,255,0.05);
-    border: 1px solid rgba(0,212,255,0.2);
-    border-radius: 10px;
-    padding: 0.65rem 1rem;
-    margin-top: 0.4rem;
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    min-height: 42px;
-}
-.live-coords-preview .lc-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-}
-.live-coords-preview .lc-value {
-    font-size: 0.98rem;
-    font-weight: 700;
-    color: var(--accent-cyan);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.03em;
-    word-break: break-all;
-}
-.live-coords-preview .lc-empty {
-    font-size: 0.82rem;
-    color: rgba(122,154,181,0.35);
-    font-style: italic;
-}
-
 section[data-testid="stSidebar"] { background: var(--bg-mid) !important; }
+</style>
+""", unsafe_allow_html=True)
+
+# تنسيق ديناميكي لزر الـ GPS حسب الحالة
+if st.session_state.gps_active:
+    btn_bg = "rgba(0, 229, 160, 0.15)"
+    btn_border = "#00e5a0"
+    btn_color = "#00e5a0"
+    btn_hover_bg = "rgba(0, 229, 160, 0.25)"
+    btn_shadow = "rgba(0, 229, 160, 0.3)"
+else:
+    btn_bg = "rgba(122, 154, 181, 0.1)"
+    btn_border = "#7a9ab5"
+    btn_color = "#7a9ab5"
+    btn_hover_bg = "rgba(122, 154, 181, 0.2)"
+    btn_shadow = "rgba(122, 154, 181, 0.25)"
+
+st.markdown(f"""
+<style>
+div[data-testid="stButton"] > button {{
+    background: {btn_bg} !important;
+    border: 1px solid {btn_border} !important;
+    color: {btn_color} !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    padding: 0.6rem 1.4rem !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+}}
+div[data-testid="stButton"] > button:hover {{
+    background: {btn_hover_bg} !important;
+    border-color: {btn_border} !important;
+    box-shadow: 0 4px 16px {btn_shadow} !important;
+    transform: translateY(-2px) !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -635,17 +582,8 @@ def build_map(lat: float, lon: float, is_inside: bool):
     return m
 
 # ─────────────────────────────────────────────
-# 5. تهيئة حالة الجلسة
+# 5. الواجهة الرئيسية (UI)
 # ─────────────────────────────────────────────
-if "gps_enabled" not in st.session_state:
-    st.session_state.gps_enabled = False
-if "input_coords" not in st.session_state:
-    st.session_state.input_coords = ""
-
-# ─────────────────────────────────────────────
-# 6. الواجهة الرئيسية (UI)
-# ─────────────────────────────────────────────
-
 st.markdown("""
 <div class="hero-header">
     <div class="hero-badge">🏙️ نظام ذكي &nbsp;|&nbsp; إصدار 2.0</div>
@@ -676,52 +614,47 @@ st.markdown("""
 
 col_input, col_result = st.columns([1, 2.2], gap="large")
 
-# ════════════════════════════════════════════
-# عمود الإدخال
-# ════════════════════════════════════════════
 with col_input:
-
-    # ── بطاقة GPS مع زر التفعيل/الإيقاف ──
+    # ── بطاقة زر الـ GPS المخصصة ──
     st.markdown("""
     <div class="panel-card">
         <div class="panel-title">
             <span class="icon">📡</span>
-            تحديد الموقع تلقائياً
+            تحديد الموقع عبر GPS
         </div>
         <p style="font-size:0.85rem;color:#7a9ab5;margin:0 0 1rem;">
-            فعّل GPS للتقاط إحداثياتك الحالية من الجهاز مباشرةً
+            قم بتفعيل الزر أدناه لالتقاط إحداثياتك الحالية مباشرةً
         </p>
-    </div>
     """, unsafe_allow_html=True)
 
-    # زر التبديل (toggle)
-    if st.session_state.gps_enabled:
-        btn_label = "📡  GPS مفعّل — انقر للإيقاف"
-        btn_style = "gps-btn-on"
-    else:
-        btn_label = "📡  تفعيل تحديد الموقع GPS"
-        btn_style = "gps-btn-off"
+    # الزر التفاعلي
+    st.button(
+        "🟢 التقاط الموقع مفعّل (اضغط للإيقاف)" if st.session_state.gps_active else "⚪ تفعيل التقاط الموقع",
+        on_click=toggle_gps,
+        use_container_width=True
+    )
+    
+    # إغلاق بطاقة الـ GPS
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    # نستخدم زر Streamlit العادي ونخصصه بـ CSS
-    gps_toggle = st.button(btn_label, key="gps_toggle_btn", use_container_width=True)
-    if gps_toggle:
-        st.session_state.gps_enabled = not st.session_state.gps_enabled
-        st.rerun()
-
-    # إذا كان GPS مفعلاً، اطلب الموقع
-    if st.session_state.gps_enabled:
+    # تشغيل أمر التقاط الموقع فقط عندما يكون الزر مفعلاً
+    if st.session_state.gps_active:
         try:
-            with st.spinner("⏳ جارٍ تحديد موقعك..."):
-                loc = get_geolocation(component_key="get_loc_active")
+            loc = get_geolocation(component_key="get_loc")
             if loc and "coords" in loc:
                 gps_lat = loc["coords"]["latitude"]
                 gps_lon = loc["coords"]["longitude"]
-                st.session_state.input_coords = f"{gps_lat:.6f}, {gps_lon:.6f}"
-                st.success(f"✅ تم التقاط الموقع: {gps_lat:.5f}, {gps_lon:.5f}")
+                new_coords = f"{gps_lat:.6f}, {gps_lon:.6f}"
+                
+                # تحديث حقل الإدخال إذا كانت الإحداثيات جديدة لمنع إعادة التحميل اللانهائية
+                if st.session_state.get("coord_input") != new_coords:
+                    st.session_state.coord_input = new_coords
+                    st.rerun()
+                
+                st.success(f"✅ تم التقاط الموقع بنجاح!")
         except Exception:
-            st.warning("⚠️ تعذّر الوصول إلى GPS. تحقق من صلاحيات الموقع في المتصفح.")
+            pass
 
-    # خط فصل
     st.markdown('<div class="divider">أو أدخل يدوياً</div>', unsafe_allow_html=True)
 
     # ── بطاقة الإدخال اليدوي ──
@@ -731,63 +664,30 @@ with col_input:
             <span class="icon">✏️</span>
             إدخال الإحداثيات
         </div>
-    </div>
     """, unsafe_allow_html=True)
 
     with st.form("coord_form", clear_on_submit=False):
+        # استخدام key="coord_input" يربط الحقل مباشرة بالجلسة، مما يحفظ الرقم المدخل
         user_input = st.text_input(
             "خط العرض , خط الطول",
-            value=st.session_state.get("input_coords", ""),
+            key="coord_input",
             placeholder="مثال:  30.727313, 31.284638",
             help="الصيغة العشرية: 30.727313, 31.284638  |  صيغة DMS: 30°43'38.3\"N 31°17'4.7\"E"
         )
-
-        # ── معاينة فورية للإحداثيات المُدخلة ──
-        if user_input and user_input.strip():
-            parsed_preview = parse_coords(user_input)
-            if parsed_preview:
-                prev_lat, prev_lon = parsed_preview
-                st.markdown(f"""
-                <div class="live-coords-preview">
-                    <span style="font-size:1rem">📍</span>
-                    <span class="lc-label">عرض:</span>
-                    <span class="lc-value">{prev_lat:.6f}</span>
-                    <span class="lc-label" style="margin-right:0.5rem">طول:</span>
-                    <span class="lc-value">{prev_lon:.6f}</span>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                <div class="live-coords-preview">
-                    <span style="font-size:1rem">⚠️</span>
-                    <span class="lc-empty">الصيغة غير صحيحة بعد — تابع الإدخال</span>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="live-coords-preview">
-                <span style="font-size:1rem; opacity:0.3">📍</span>
-                <span class="lc-empty">الإحداثيات ستظهر هنا أثناء الكتابة</span>
-            </div>
-            """, unsafe_allow_html=True)
-
         submitted = st.form_submit_button("🔍  بدء الفحص والاستعلام", use_container_width=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    # تلميح
     st.markdown("""
     <div style="margin-top:0.5rem;padding:0.75rem 1rem;background:rgba(240,180,41,0.06);
          border-right:3px solid rgba(240,180,41,0.5);border-radius:8px;">
         <p style="font-size:0.78rem;color:#c9a44a;margin:0;line-height:1.6;">
-            <b>💡 تلميح:</b> يمكنك نسخ الإحداثيات مباشرة من Google Maps بالنقر بزر اليمين على الموقع
+            <b>💡 تلميح:</b> يمكنك نسخ الإحداثيات مباشرة من خرائط جوجل
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-# ════════════════════════════════════════════
-# عمود النتائج
-# ════════════════════════════════════════════
 with col_result:
-
     if submitted:
         if not user_input.strip():
             st.warning("⚠️ الرجاء إدخال الإحداثيات أولاً قبل الفحص.")
@@ -851,8 +751,8 @@ with col_result:
             <div class="placeholder-icon">🗺️</div>
             <div class="placeholder-title">الخريطة التفاعلية</div>
             <div class="placeholder-desc">
-                أدخل إحداثيات الموقع في اللوحة اليسرى<br>
-                ثم اضغط على "بدء الفحص" لعرض النتيجة والخريطة
+                أدخل إحداثيات الموقع أو قم بتفعيل التقاط الموقع<br>
+                ثم اضغط على "بدء الفحص" لعرض النتيجة
             </div>
         </div>
         """, unsafe_allow_html=True)
