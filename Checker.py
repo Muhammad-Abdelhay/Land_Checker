@@ -554,4 +554,7 @@ with col_input:
     </div>
     """, unsafe_allow_html=True)
     
-    gps_label = "🟢 إيقاف البث الحي للموقع (ON)" if
+if st.session_state.gps_active:
+    gps_label = "🟢 إيقاف البث الحي للموقع (ON)"
+else:
+    gps_label = "⚪ تشغيل الموقع الحالي (OFF)"
