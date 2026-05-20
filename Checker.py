@@ -23,47 +23,39 @@ def toggle_gps():
     st.session_state.gps_active = not st.session_state.gps_active
 
 # ─────────────────────────────────────────────
-# 2. التنسيق (CSS) المحسّن بخلفية Gemini المتحركة
+# 2. التنسيق (CSS) المحسّن
 # ─────────────────────────────────────────────
+# التنسيق الثابت
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap');
 
 :root {
+    --bg-deep:      #060d17;
     --bg-mid:       #0c1929;
     --bg-surface:   #101f33;
-    --bg-card:      rgba(18, 32, 54, 0.75); /* جعل البطاقات شبه شفافة لتظهر الخلفية المتحركة */
+    --bg-card:      #122036;
     --accent-cyan:  #00d4ff;
+    --accent-teal:  #00b89c;
     --accent-gold:  #f0b429;
     --accent-rose:  #ff5c7a;
     --accent-green: #00e5a0;
     --text-primary: #e8f4fd;
     --text-muted:   #7a9ab5;
-    --border-glow:  rgba(0, 229, 160, 0.25);
-    --border-soft:  rgba(255,255,255,0.08);
-    --shadow-card:  0 8px 40px rgba(0,0,0,0.3);
+    --border-glow:  rgba(0, 212, 255, 0.25);
+    --border-soft:  rgba(255,255,255,0.06);
+    --shadow-card:  0 8px 40px rgba(0,0,0,0.45);
     --radius-lg:    16px;
     --radius-md:    10px;
 }
 
 * { font-family: 'Cairo', 'Tajawal', sans-serif !important; direction: rtl; text-align: right; box-sizing: border-box; }
 
-/* 🌟 إضافة تأثير الخلفية المتحركة (Gemini Flow Effect) 🌟 */
-@keyframes geminiFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
 html, body, .stApp {
-    /* تدرج لوني يجمع بين ألوان الفضاء الداكنة ولمسات من البنفسجي والأزرق مثل Gemini */
-    background: linear-gradient(-45deg, #060d17, #0a1930, #171124, #002233, #050b14) !important;
-    background-size: 400% 400% !important;
-    animation: geminiFlow 18s ease infinite !important;
+    background: var(--bg-deep) !important;
     color: var(--text-primary) !important;
 }
 
-/* شبكة الإحداثيات الشفافة فوق الخلفية المتحركة */
 .stApp::before {
     content: '';
     position: fixed;
@@ -80,13 +72,10 @@ html, body, .stApp {
 [data-testid="stToolbar"],
 [data-testid="stDecoration"] { display: none !important; }
 
-/* جعل الهيدر شبه شفاف ليتماشى مع الخلفية */
 .hero-header {
     position: relative;
     overflow: hidden;
-    background: rgba(8, 22, 38, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, #081626 0%, #0c2240 50%, #071520 100%);
     border: 1px solid var(--border-glow);
     border-radius: var(--radius-lg);
     padding: 2.5rem 2rem;
@@ -101,7 +90,7 @@ html, body, .stApp {
     transform: translateX(-50%);
     width: 600px;
     height: 300px;
-    background: radial-gradient(ellipse, rgba(0,229,160,0.12) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(0,212,255,0.12) 0%, transparent 70%);
     pointer-events: none;
 }
 .hero-header::after {
@@ -109,13 +98,13 @@ html, body, .stApp {
     position: absolute;
     bottom: 0; left: 0; right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
 }
 .hero-badge {
     display: inline-block;
-    background: rgba(0,229,160,0.1);
-    border: 1px solid rgba(0,229,160,0.3);
-    color: var(--accent-green);
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent-cyan);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.15em;
@@ -130,9 +119,9 @@ html, body, .stApp {
     color: #fff;
     margin: 0 0 0.5rem;
     line-height: 1.2;
-    text-shadow: 0 0 40px rgba(0,229,160,0.3);
+    text-shadow: 0 0 40px rgba(0,212,255,0.3);
 }
-.hero-title span { color: var(--accent-green); }
+.hero-title span { color: var(--accent-cyan); }
 .hero-subtitle {
     font-size: 1rem;
     color: var(--text-muted);
@@ -144,8 +133,6 @@ html, body, .stApp {
 
 .panel-card {
     background: var(--bg-card);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 1.6rem;
@@ -168,10 +155,38 @@ html, body, .stApp {
 }
 .panel-title .icon {
     width: 34px; height: 34px;
-    background: rgba(0,229,160,0.1);
+    background: rgba(0,212,255,0.1);
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     font-size: 1rem;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.stat-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+.stat-chip:hover { border-color: var(--border-glow); transform: translateY(-2px); }
+.stat-chip .stat-val {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--accent-cyan);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+.stat-chip .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 .result-wrap {
@@ -182,21 +197,20 @@ html, body, .stApp {
     align-items: center;
     gap: 1.2rem;
     animation: slideDown 0.4s ease;
-    backdrop-filter: blur(8px);
 }
 @keyframes slideDown {
     from { opacity: 0; transform: translateY(-16px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 .result-inside {
-    background: linear-gradient(135deg, rgba(0,229,160,0.12), rgba(0,184,156,0.05));
-    border: 1px solid rgba(0,229,160,0.4);
-    box-shadow: 0 0 30px rgba(0,229,160,0.15), inset 0 1px 0 rgba(0,229,160,0.2);
+    background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,184,156,0.05));
+    border: 1px solid rgba(0,229,160,0.35);
+    box-shadow: 0 0 30px rgba(0,229,160,0.1), inset 0 1px 0 rgba(0,229,160,0.15);
 }
 .result-outside {
-    background: linear-gradient(135deg, rgba(255,92,122,0.12), rgba(239,68,68,0.05));
-    border: 1px solid rgba(255,92,122,0.4);
-    box-shadow: 0 0 30px rgba(255,92,122,0.15), inset 0 1px 0 rgba(255,92,122,0.2);
+    background: linear-gradient(135deg, rgba(255,92,122,0.08), rgba(239,68,68,0.05));
+    border: 1px solid rgba(255,92,122,0.35);
+    box-shadow: 0 0 30px rgba(255,92,122,0.1), inset 0 1px 0 rgba(255,92,122,0.15);
 }
 .result-icon {
     font-size: 2.5rem;
@@ -217,8 +231,8 @@ html, body, .stApp {
 }
 
 .coords-card {
-    background: rgba(0,229,160,0.06);
-    border: 1px solid rgba(0,229,160,0.2);
+    background: rgba(0,212,255,0.04);
+    border: 1px solid rgba(0,212,255,0.15);
     border-radius: var(--radius-md);
     padding: 0.9rem 1.2rem;
     display: flex;
@@ -228,22 +242,22 @@ html, body, .stApp {
 }
 .coords-dot {
     width: 10px; height: 10px;
-    background: var(--accent-green);
+    background: var(--accent-cyan);
     border-radius: 50%;
-    box-shadow: 0 0 8px var(--accent-green);
+    box-shadow: 0 0 8px var(--accent-cyan);
     flex-shrink: 0;
     animation: pulse 2s infinite;
 }
 @keyframes pulse {
-    0%,100% { box-shadow: 0 0 5px var(--accent-green); }
-    50%      { box-shadow: 0 0 14px var(--accent-green), 0 0 22px rgba(0,229,160,0.3); }
+    0%,100% { box-shadow: 0 0 5px var(--accent-cyan); }
+    50%      { box-shadow: 0 0 14px var(--accent-cyan), 0 0 22px rgba(0,212,255,0.3); }
 }
 .coords-label { font-size: 0.78rem; color: var(--text-muted); }
 .coords-value { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 
 div[data-testid="stTextInput"] input {
-    background: rgba(255,255,255,0.05) !important;
-    border: 1px solid rgba(0,229,160,0.2) !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(0,212,255,0.2) !important;
     border-radius: 10px !important;
     color: var(--text-primary) !important;
     padding: 0.65rem 1rem !important;
@@ -251,26 +265,38 @@ div[data-testid="stTextInput"] input {
     transition: border-color 0.2s, box-shadow 0.2s !important;
 }
 div[data-testid="stTextInput"] input:focus {
-    border-color: var(--accent-green) !important;
-    box-shadow: 0 0 0 3px rgba(0,229,160,0.15) !important;
+    border-color: var(--accent-cyan) !important;
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.12) !important;
     outline: none !important;
 }
 
 div[data-testid="stFormSubmitButton"] > button {
-    background: linear-gradient(135deg, #00b89c, #00e5a0) !important;
+    background: linear-gradient(135deg, #0062cc, #00b4d8) !important;
     border: none !important;
-    color: #060d17 !important;
+    color: #fff !important;
     border-radius: 10px !important;
     font-weight: 800 !important;
     font-size: 1rem !important;
     padding: 0.75rem !important;
     width: 100% !important;
-    box-shadow: 0 4px 20px rgba(0,229,160,0.3) !important;
+    box-shadow: 0 4px 20px rgba(0,180,216,0.3) !important;
     transition: all 0.3s ease !important;
+    letter-spacing: 0.03em !important;
 }
 div[data-testid="stFormSubmitButton"] > button:hover {
-    box-shadow: 0 6px 28px rgba(0,229,160,0.5) !important;
+    box-shadow: 0 6px 28px rgba(0,180,216,0.5) !important;
     transform: translateY(-3px) !important;
+    background: linear-gradient(135deg, #0070e0, #00c8f0) !important;
+}
+
+div[data-testid="stTextInput"] label,
+div[data-testid="stSelectbox"] label {
+    color: var(--text-muted) !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 0.3rem !important;
 }
 
 div[data-testid="stAlert"] {
@@ -279,16 +305,38 @@ div[data-testid="stAlert"] {
     background: rgba(240,180,41,0.07) !important;
 }
 
+div[data-testid="stSpinner"] p { color: var(--text-muted) !important; }
+
 .placeholder-screen {
     height: 520px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 2px dashed rgba(0,229,160,0.15);
+    border: 2px dashed rgba(0,212,255,0.12);
     border-radius: var(--radius-lg);
-    background: rgba(18, 32, 54, 0.4);
-    backdrop-filter: blur(5px);
+    background: var(--bg-card);
+    transition: all 0.3s;
+}
+.placeholder-screen:hover { border-color: rgba(0,212,255,0.25); }
+.placeholder-icon {
+    font-size: 4.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+    filter: drop-shadow(0 0 12px rgba(0,212,255,0.4));
+}
+.placeholder-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.placeholder-desc {
+    font-size: 0.85rem;
+    color: rgba(122,154,181,0.6);
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.7;
 }
 
 .divider {
@@ -306,6 +354,17 @@ div[data-testid="stAlert"] {
     background: var(--border-soft);
 }
 
+.map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+}
+.map-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
 .map-badge {
     font-size: 0.72rem;
     font-weight: 600;
@@ -323,24 +382,24 @@ div[data-testid="stAlert"] {
     0%,100% { opacity: 1; }
     50%      { opacity: 0.5; }
 }
+
+section[data-testid="stSidebar"] { background: var(--bg-mid) !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────
-# تظليل وتنسيق زر الـ GPS (Toggle Switch)
-# ─────────────────────────────────────────────
+# تنسيق ديناميكي لزر الـ GPS حسب الحالة
 if st.session_state.gps_active:
-    btn_bg = "linear-gradient(135deg, #00b89c, #00e5a0)"
+    btn_bg = "rgba(0, 229, 160, 0.15)"
     btn_border = "#00e5a0"
-    btn_color = "#060d17"
-    btn_shadow = "0 0 20px rgba(0, 229, 160, 0.6)"
-    glow_animation = "animation: pulse 1.5s infinite;"
+    btn_color = "#00e5a0"
+    btn_hover_bg = "rgba(0, 229, 160, 0.25)"
+    btn_shadow = "rgba(0, 229, 160, 0.3)"
 else:
-    btn_bg = "rgba(255, 255, 255, 0.05)"
-    btn_border = "rgba(255, 255, 255, 0.15)"
+    btn_bg = "rgba(122, 154, 181, 0.1)"
+    btn_border = "#7a9ab5"
     btn_color = "#7a9ab5"
-    btn_shadow = "none"
-    glow_animation = ""
+    btn_hover_bg = "rgba(122, 154, 181, 0.2)"
+    btn_shadow = "rgba(122, 154, 181, 0.25)"
 
 st.markdown(f"""
 <style>
@@ -348,21 +407,17 @@ div[data-testid="stButton"] > button {{
     background: {btn_bg} !important;
     border: 1px solid {btn_border} !important;
     color: {btn_color} !important;
-    border-radius: 50px !important; 
-    font-weight: 800 !important;
-    padding: 0.7rem 1.6rem !important;
-    box-shadow: {btn_shadow} !important;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    padding: 0.6rem 1.4rem !important;
+    transition: all 0.3s ease !important;
     width: 100% !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    {glow_animation}
 }}
 div[data-testid="stButton"] > button:hover {{
+    background: {btn_hover_bg} !important;
+    border-color: {btn_border} !important;
+    box-shadow: 0 4px 16px {btn_shadow} !important;
     transform: translateY(-2px) !important;
-    filter: brightness(1.1);
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -384,7 +439,7 @@ BOUNDARY_POINTS_2 = [
     (30.724686, 31.300365), (30.723999, 31.300409), (30.724035, 31.299283), (30.724191, 31.299282),
     (30.724183, 31.299604), (30.724561, 31.299566), (30.724542, 31.298039), (30.724166, 31.298057),
     (30.724177, 31.298978), (30.723874, 31.298982), (30.723883, 31.298796), (30.723563, 31.298763),
-    (30.723553, 31.299340), (30.723351, 31.299368), (30.723354, 31.299624), (30.723106, 31.299629),
+    (30.723571, 31.299340), (30.723351, 31.299368), (30.723354, 31.299624), (30.723106, 31.299629),
     (30.723083, 31.299289), (30.722603, 31.299287), (30.722602, 31.299040), (30.722476, 31.298887),
     (30.722474, 31.298885), (30.723228, 31.298330), (30.723236, 31.298163), (30.723105, 31.298165),
     (30.723102, 31.297909), (30.722863, 31.297913), (30.722820, 31.298446), (30.722298, 31.298443),
@@ -421,7 +476,7 @@ BOUNDARY_POINTS_2 = [
     (30.736955, 31.295531), (30.736568, 31.295382), (30.736186, 31.296724), (30.735956, 31.296656),
     (30.735666, 31.297535), (30.735786, 31.297608), (30.735754, 31.297701), (30.736233, 31.297994),
     (30.735298, 31.300357), (30.735131, 31.300549), (30.735560, 31.300958), (30.735970, 31.301115),
-    (30.735685, 31.302161), (30.735475, 31.301738),
+    (30.735685, 31.302161), (30.735944, 31.302214), (30.735818, 31.302683), (30.735475, 31.301738),
     (30.734499, 31.301261), (30.734008, 31.302902), (30.734462, 31.303135), (30.734278, 31.303673),
     (30.734143, 31.303502), (30.734085, 31.303215), (30.733325, 31.302837), (30.733228, 31.303085),
     (30.733124, 31.303040), (30.732857, 31.304064), (30.732406, 31.303793), (30.732351, 31.304903),
@@ -481,7 +536,6 @@ def build_map(lat: float, lon: float, is_inside: bool):
         name="🛰️ أقمار صناعية",
         overlay=False
     ).add_to(m)
-    
     folium.TileLayer(
         tiles="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
         attr="Google Maps",
@@ -489,14 +543,7 @@ def build_map(lat: float, lon: float, is_inside: bool):
         overlay=False
     ).add_to(m)
 
-    poly_kw = dict(
-        color="#00e5a0", 
-        weight=3.0, 
-        fillColor="#00e5a0", 
-        fillOpacity=0.10, 
-        dashArray=""
-    )
-    
+    poly_kw = dict(color="#00d4ff", weight=2.5, fillColor="#00b4d8", fillOpacity=0.12, dashArray="")
     folium.Polygon(locations=BOUNDARY_POINTS_1, **poly_kw, tooltip="<b>المنطقة الأولى</b>").add_to(m)
     folium.Polygon(locations=BOUNDARY_POINTS_2, **poly_kw, tooltip="<b>المنطقة الثانية</b>").add_to(m)
 
@@ -508,7 +555,6 @@ def build_map(lat: float, lon: float, is_inside: bool):
         radius=22, color=color, weight=1.5,
         fill=True, fill_color=color, fill_opacity=0.12
     ).add_to(m)
-    
     folium.CircleMarker(
         location=[lat, lon],
         radius=10, color=color, weight=2.5,
@@ -525,36 +571,188 @@ def build_map(lat: float, lon: float, is_inside: bool):
             f"</div>",
             permanent=False
         ),
-        icon=folium.Icon(color="green" if is_inside else "red", icon="info-sign")
+        icon=folium.Icon(
+            color="green" if is_inside else "red",
+            icon="map-marker",
+            prefix="fa"
+        )
     ).add_to(m)
 
-    folium.LayerControl(position="topleft").add_to(m)
+    folium.LayerControl(collapsed=False).add_to(m)
     return m
 
 # ─────────────────────────────────────────────
-# 5. واجهة المستخدم الرسومية (UI Layout)
+# 5. الواجهة الرئيسية (UI)
 # ─────────────────────────────────────────────
 st.markdown("""
 <div class="hero-header">
-    <div class="hero-badge">نظام الاستعلام الجغرافي الذكي</div>
-    <h1 class="hero-title">نظام تدقيق <span>الحيز العمراني</span></h1>
-    <p class="hero-subtitle">قم بالاستعلام الفوري واللحظي عن موقف الأراضي والعقارات من خلال الإحداثيات الجغرافية الدقيقة أو عبر تفعيل التتبع الحي للموقع الحالي.</p>
+    <div class="hero-badge">🏙️ نظام ذكي &nbsp;|&nbsp; إصدار 2.0</div>
+    <h1 class="hero-title">الاستعلام عن <span>الحيز العمراني</span></h1>
+    <p class="hero-subtitle">
+        تحقق فوري من موقع أي قطعة أرض أو مبنى داخل أو خارج النطاق العمراني المعتمد
+        باستخدام إحداثياتك الجغرافية الدقيقة
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
-col_input, col_map = st.columns([1, 2], gap="large")
+st.markdown("""
+<div class="stats-row">
+    <div class="stat-chip">
+        <div class="stat-val">2</div>
+        <div class="stat-label">نطاق عمراني معتمد</div>
+    </div>
+    <div class="stat-chip">
+        <div class="stat-val" style="color:#00e5a0">GPS</div>
+        <div class="stat-label">تحديد تلقائي بالموقع</div>
+    </div>
+    <div class="stat-chip">
+        <div class="stat-val" style="color:#f0b429">DMS</div>
+        <div class="stat-label">دعم صيغ متعددة</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+col_input, col_result = st.columns([1, 2.2], gap="large")
 
 with col_input:
+    # ── بطاقة زر الـ GPS المخصصة ──
     st.markdown("""
     <div class="panel-card">
         <div class="panel-title">
-            <div class="icon">📡</div>
-            <div>تحديد الموقع الحالي عبر الـ GPS</div>
+            <span class="icon">📡</span>
+            تحديد الموقع عبر GPS
         </div>
+        <p style="font-size:0.85rem;color:#7a9ab5;margin:0 0 1rem;">
+            قم بتفعيل الزر أدناه لالتقاط إحداثياتك الحالية مباشرةً
+        </p>
+    """, unsafe_allow_html=True)
+
+    # الزر التفاعلي
+    st.button(
+        "🟢 التقاط الموقع مفعّل (اضغط للإيقاف)" if st.session_state.gps_active else "⚪ تفعيل التقاط الموقع",
+        on_click=toggle_gps,
+        use_container_width=True
+    )
+    
+    # إغلاق بطاقة الـ GPS
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # تشغيل أمر التقاط الموقع فقط عندما يكون الزر مفعلاً
+    if st.session_state.gps_active:
+        try:
+            loc = get_geolocation(component_key="get_loc")
+            if loc and "coords" in loc:
+                gps_lat = loc["coords"]["latitude"]
+                gps_lon = loc["coords"]["longitude"]
+                new_coords = f"{gps_lat:.6f}, {gps_lon:.6f}"
+                
+                # تحديث حقل الإدخال إذا كانت الإحداثيات جديدة لمنع إعادة التحميل اللانهائية
+                if st.session_state.get("coord_input") != new_coords:
+                    st.session_state.coord_input = new_coords
+                    st.rerun()
+                
+                st.success(f"✅ تم التقاط الموقع بنجاح!")
+        except Exception:
+            pass
+
+    st.markdown('<div class="divider">أو أدخل يدوياً</div>', unsafe_allow_html=True)
+
+    # ── بطاقة الإدخال اليدوي ──
+    st.markdown("""
+    <div class="panel-card">
+        <div class="panel-title">
+            <span class="icon">✏️</span>
+            إدخال الإحداثيات
+        </div>
+    """, unsafe_allow_html=True)
+
+    with st.form("coord_form", clear_on_submit=False):
+        # استخدام key="coord_input" يربط الحقل مباشرة بالجلسة، مما يحفظ الرقم المدخل
+        user_input = st.text_input(
+            "خط العرض , خط الطول",
+            key="coord_input",
+            placeholder="مثال:  30.727313, 31.284638",
+            help="الصيغة العشرية: 30.727313, 31.284638  |  صيغة DMS: 30°43'38.3\"N 31°17'4.7\"E"
+        )
+        submitted = st.form_submit_button("🔍  بدء الفحص والاستعلام", use_container_width=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="margin-top:0.5rem;padding:0.75rem 1rem;background:rgba(240,180,41,0.06);
+         border-right:3px solid rgba(240,180,41,0.5);border-radius:8px;">
+        <p style="font-size:0.78rem;color:#c9a44a;margin:0;line-height:1.6;">
+            <b>💡 تلميح:</b> يمكنك نسخ الإحداثيات مباشرة من خرائط جوجل
+        </p>
     </div>
     """, unsafe_allow_html=True)
-    
-if st.session_state.gps_active:
-    gps_label = "🟢 إيقاف البث الحي للموقع (ON)"
-else:
-    gps_label = "⚪ تشغيل الموقع الحالي (OFF)"
+
+with col_result:
+    if submitted:
+        if not user_input.strip():
+            st.warning("⚠️ الرجاء إدخال الإحداثيات أولاً قبل الفحص.")
+        else:
+            parsed = parse_coords(user_input)
+            if parsed:
+                lat, lon = parsed
+                point = Point(lon, lat)
+                is_inside = polygon1.contains(point) or polygon2.contains(point)
+
+                if is_inside:
+                    st.markdown("""
+                    <div class="result-wrap result-inside">
+                        <span class="result-icon">✅</span>
+                        <div>
+                            <div class="result-text-main">الموقع يقع داخل الحيز العمراني المعتمد</div>
+                            <div class="result-text-sub">هذا الموقع ضمن النطاق الرسمي المعتمد للتخطيط العمراني</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div class="result-wrap result-outside">
+                        <span class="result-icon">⛔</span>
+                        <div>
+                            <div class="result-text-main">الموقع يقع خارج الحيز العمراني</div>
+                            <div class="result-text-sub">هذا الموقع خارج النطاق العمراني الرسمي المعتمد حالياً</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                st.markdown(f"""
+                <div class="coords-card">
+                    <span class="coords-dot"></span>
+                    <div>
+                        <div class="coords-label">الإحداثيات المستخدمة في الفحص</div>
+                        <div class="coords-value">
+                            {lat:.6f}&nbsp;&nbsp;,&nbsp;&nbsp;{lon:.6f}
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown("""
+                <div class="map-header">
+                    <span class="map-title">🗺️ الخريطة التفاعلية</span>
+                    <span class="map-badge badge-live">● مباشر</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                with st.spinner("⏳ جارٍ تحميل الخريطة التفاعلية..."):
+                    m = build_map(lat, lon, is_inside)
+                    st_folium(m, width="100%", height=470, returned_objects=[])
+
+            else:
+                st.error("❌ صيغة الإحداثيات غير صحيحة. يرجى التأكد من إدخال الأرقام بالشكل الصحيح مثل: **30.727313, 31.284638**")
+
+    else:
+        st.markdown("""
+        <div class="placeholder-screen">
+            <div class="placeholder-icon">🗺️</div>
+            <div class="placeholder-title">الخريطة التفاعلية</div>
+            <div class="placeholder-desc">
+                أدخل إحداثيات الموقع أو قم بتفعيل التقاط الموقع<br>
+                ثم اضغط على "بدء الفحص" لعرض النتيجة
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
