@@ -34,8 +34,7 @@ st.markdown("""
     --bg-deep:      #060d17;
     --bg-mid:       #0c1929;
     --bg-surface:   #101f33;
-    /* جعل البطاقات شبه شفافة ليظهر التموج الخاص بالخلفية */
-    --bg-card:      rgba(18, 32, 54, 0.75); 
+    --bg-card:      #122036;
     --accent-cyan:  #00d4ff;
     --accent-teal:  #00b89c;
     --accent-gold:  #f0b429;
@@ -52,17 +51,8 @@ st.markdown("""
 
 * { font-family: 'Cairo', 'Tajawal', sans-serif !important; direction: rtl; text-align: right; box-sizing: border-box; }
 
-/* 🌟 تأثير الخلفية المتحركة مثل Gemini 🌟 */
-@keyframes geminiFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
 html, body, .stApp {
-    background: linear-gradient(-45deg, #060d17, #0a1930, #171124, #002233, #050b14) !important;
-    background-size: 400% 400% !important;
-    animation: geminiFlow 18s ease infinite !important;
+    background: var(--bg-deep) !important;
     color: var(--text-primary) !important;
 }
 
@@ -85,9 +75,7 @@ html, body, .stApp {
 .hero-header {
     position: relative;
     overflow: hidden;
-    background: rgba(8, 22, 38, 0.6); /* خلفية زجاجية */
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, #081626 0%, #0c2240 50%, #071520 100%);
     border: 1px solid var(--border-glow);
     border-radius: var(--radius-lg);
     padding: 2.5rem 2rem;
@@ -145,8 +133,6 @@ html, body, .stApp {
 
 .panel-card {
     background: var(--bg-card);
-    backdrop-filter: blur(12px); /* تأثير ضبابي للزجاج */
-    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 1.6rem;
@@ -183,7 +169,6 @@ html, body, .stApp {
 }
 .stat-chip {
     background: var(--bg-card);
-    backdrop-filter: blur(12px);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-md);
     padding: 1rem;
@@ -212,7 +197,6 @@ html, body, .stApp {
     align-items: center;
     gap: 1.2rem;
     animation: slideDown 0.4s ease;
-    backdrop-filter: blur(8px);
 }
 @keyframes slideDown {
     from { opacity: 0; transform: translateY(-16px); }
@@ -333,7 +317,6 @@ div[data-testid="stSpinner"] p { color: var(--text-muted) !important; }
     border-radius: var(--radius-lg);
     background: var(--bg-card);
     transition: all 0.3s;
-    backdrop-filter: blur(12px);
 }
 .placeholder-screen:hover { border-color: rgba(0,212,255,0.25); }
 .placeholder-icon {
@@ -571,4 +554,205 @@ def build_map(lat: float, lon: float, is_inside: bool):
         location=[lat, lon],
         radius=22, color=color, weight=1.5,
         fill=True, fill_color=color, fill_opacity=0.12
-    ).ad
+    ).add_to(m)
+    folium.CircleMarker(
+        location=[lat, lon],
+        radius=10, color=color, weight=2.5,
+        fill=True, fill_color=color, fill_opacity=0.4
+    ).add_to(m)
+
+    folium.Marker(
+        location=[lat, lon],
+        tooltip=folium.Tooltip(
+            f"<div style='direction:rtl;text-align:right;font-family:Cairo,sans-serif;min-width:160px'>"
+            f"<b style='font-size:14px'>{status}</b><br>"
+            f"<span style='color:#888'>خط عرض:</span> {lat:.6f}<br>"
+            f"<span style='color:#888'>خط طول:</span> {lon:.6f}"
+            f"</div>",
+            permanent=False
+        ),
+        icon=folium.Icon(
+            color="green" if is_inside else "red",
+            icon="map-marker",
+            prefix="fa"
+        )
+    ).add_to(m)
+
+    folium.LayerControl(collapsed=False).add_to(m)
+    return m
+
+# ─────────────────────────────────────────────
+# 5. الواجهة الرئيسية (UI)
+# ─────────────────────────────────────────────
+st.markdown("""
+<div class="hero-header">
+    <div class="hero-badge">🏙️ نظام ذكي &nbsp;|&nbsp; إصدار 2.0</div>
+    <h1 class="hero-title">الاستعلام عن <span>الحيز العمراني</span></h1>
+    <p class="hero-subtitle">
+        تحقق فوري من موقع أي قطعة أرض أو مبنى داخل أو خارج النطاق العمراني المعتمد
+        باستخدام إحداثياتك الجغرافية الدقيقة
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="stats-row">
+    <div class="stat-chip">
+        <div class="stat-val">2</div>
+        <div class="stat-label">نطاق عمراني معتمد</div>
+    </div>
+    <div class="stat-chip">
+        <div class="stat-val" style="color:#00e5a0">GPS</div>
+        <div class="stat-label">تحديد تلقائي بالموقع</div>
+    </div>
+    <div class="stat-chip">
+        <div class="stat-val" style="color:#f0b429">DMS</div>
+        <div class="stat-label">دعم صيغ متعددة</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+col_input, col_result = st.columns([1, 2.2], gap="large")
+
+with col_input:
+    # ── بطاقة زر الـ GPS المخصصة ──
+    st.markdown("""
+    <div class="panel-card">
+        <div class="panel-title">
+            <span class="icon">📡</span>
+            تحديد الموقع عبر GPS
+        </div>
+        <p style="font-size:0.85rem;color:#7a9ab5;margin:0 0 1rem;">
+            قم بتفعيل الزر أدناه لالتقاط إحداثياتك الحالية مباشرةً
+        </p>
+    """, unsafe_allow_html=True)
+
+    # الزر التفاعلي
+    st.button(
+        "🟢 التقاط الموقع مفعّل (اضغط للإيقاف)" if st.session_state.gps_active else "⚪ تفعيل التقاط الموقع",
+        on_click=toggle_gps,
+        use_container_width=True
+    )
+    
+    # إغلاق بطاقة الـ GPS
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # تشغيل أمر التقاط الموقع فقط عندما يكون الزر مفعلاً
+    if st.session_state.gps_active:
+        try:
+            loc = get_geolocation(component_key="get_loc")
+            if loc and "coords" in loc:
+                gps_lat = loc["coords"]["latitude"]
+                gps_lon = loc["coords"]["longitude"]
+                new_coords = f"{gps_lat:.6f}, {gps_lon:.6f}"
+                
+                # تحديث حقل الإدخال إذا كانت الإحداثيات جديدة لمنع إعادة التحميل اللانهائية
+                if st.session_state.get("coord_input") != new_coords:
+                    st.session_state.coord_input = new_coords
+                    st.rerun()
+                
+                st.success(f"✅ تم التقاط الموقع بنجاح!")
+        except Exception:
+            pass
+
+    st.markdown('<div class="divider">أو أدخل يدوياً</div>', unsafe_allow_html=True)
+
+    # ── بطاقة الإدخال اليدوي ──
+    st.markdown("""
+    <div class="panel-card">
+        <div class="panel-title">
+            <span class="icon">✏️</span>
+            إدخال الإحداثيات
+        </div>
+    """, unsafe_allow_html=True)
+
+    with st.form("coord_form", clear_on_submit=False):
+        # استخدام key="coord_input" يربط الحقل مباشرة بالجلسة، مما يحفظ الرقم المدخل
+        user_input = st.text_input(
+            "خط العرض , خط الطول",
+            key="coord_input",
+            placeholder="مثال:  30.727313, 31.284638",
+            help="الصيغة العشرية: 30.727313, 31.284638  |  صيغة DMS: 30°43'38.3\"N 31°17'4.7\"E"
+        )
+        submitted = st.form_submit_button("🔍  بدء الفحص والاستعلام", use_container_width=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="margin-top:0.5rem;padding:0.75rem 1rem;background:rgba(240,180,41,0.06);
+         border-right:3px solid rgba(240,180,41,0.5);border-radius:8px;">
+        <p style="font-size:0.78rem;color:#c9a44a;margin:0;line-height:1.6;">
+            <b>💡 تلميح:</b> يمكنك نسخ الإحداثيات مباشرة من خرائط جوجل
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_result:
+    if submitted:
+        if not user_input.strip():
+            st.warning("⚠️ الرجاء إدخال الإحداثيات أولاً قبل الفحص.")
+        else:
+            parsed = parse_coords(user_input)
+            if parsed:
+                lat, lon = parsed
+                point = Point(lon, lat)
+                is_inside = polygon1.contains(point) or polygon2.contains(point)
+
+                if is_inside:
+                    st.markdown("""
+                    <div class="result-wrap result-inside">
+                        <span class="result-icon">✅</span>
+                        <div>
+                            <div class="result-text-main">الموقع يقع داخل الحيز العمراني المعتمد</div>
+                            <div class="result-text-sub">هذا الموقع ضمن النطاق الرسمي المعتمد للتخطيط العمراني</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div class="result-wrap result-outside">
+                        <span class="result-icon">⛔</span>
+                        <div>
+                            <div class="result-text-main">الموقع يقع خارج الحيز العمراني</div>
+                            <div class="result-text-sub">هذا الموقع خارج النطاق العمراني الرسمي المعتمد حالياً</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                st.markdown(f"""
+                <div class="coords-card">
+                    <span class="coords-dot"></span>
+                    <div>
+                        <div class="coords-label">الإحداثيات المستخدمة في الفحص</div>
+                        <div class="coords-value">
+                            {lat:.6f}&nbsp;&nbsp;,&nbsp;&nbsp;{lon:.6f}
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown("""
+                <div class="map-header">
+                    <span class="map-title">🗺️ الخريطة التفاعلية</span>
+                    <span class="map-badge badge-live">● مباشر</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                with st.spinner("⏳ جارٍ تحميل الخريطة التفاعلية..."):
+                    m = build_map(lat, lon, is_inside)
+                    st_folium(m, width="100%", height=470, returned_objects=[])
+
+            else:
+                st.error("❌ صيغة الإحداثيات غير صحيحة. يرجى التأكد من إدخال الأرقام بالشكل الصحيح مثل: **30.727313, 31.284638**")
+
+    else:
+        st.markdown("""
+        <div class="placeholder-screen">
+            <div class="placeholder-icon">🗺️</div>
+            <div class="placeholder-title">الخريطة التفاعلية</div>
+            <div class="placeholder-desc">
+                أدخل إحداثيات الموقع أو قم بتفعيل التقاط الموقع<br>
+                ثم اضغط على "بدء الفحص" لعرض النتيجة
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
