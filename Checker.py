@@ -6,7 +6,7 @@ from streamlit_js_eval import get_geolocation
 import re
 
 # ─────────────────────────────────────────────
-# 1. إعدادات الصفحة وتهيئة المتغيرات
+# 1. إعدادات الصفحة
 # ─────────────────────────────────────────────
 st.set_page_config(
     page_title="الحيز العمراني | نظام الاستعلام",
@@ -14,415 +14,655 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-# تهيئة حالة زر الـ GPS
+
 if "gps_active" not in st.session_state:
     st.session_state.gps_active = False
+if "coord_input" not in st.session_state:
+    st.session_state.coord_input = ""
+if "last_gps_coords" not in st.session_state:
+    st.session_state.last_gps_coords = ""
 
 def toggle_gps():
     st.session_state.gps_active = not st.session_state.gps_active
 
 # ─────────────────────────────────────────────
-# 2. التنسيق (CSS) المحسّن
+# 2. CSS الشامل
 # ─────────────────────────────────────────────
-# التنسيق الثابت
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap');
 
 :root {
-    --bg-deep:      #060d17;
-    --bg-mid:       #0c1929;
-    --bg-surface:   #101f33;
-    --bg-card:      #122036;
-    --accent-cyan:  #00d4ff;
-    --accent-teal:  #00b89c;
-    --accent-gold:  #f0b429;
-    --accent-rose:  #ff5c7a;
-    --accent-green: #00e5a0;
-    --text-primary: #e8f4fd;
-    --text-muted:   #7a9ab5;
-    --border-glow:  rgba(0, 212, 255, 0.25);
-    --border-soft:  rgba(255,255,255,0.06);
-    --shadow-card:  0 8px 40px rgba(0,0,0,0.45);
-    --radius-lg:    16px;
-    --radius-md:    10px;
+    --navy-900:   #050d1a;
+    --navy-800:   #091424;
+    --navy-700:   #0e1e34;
+    --navy-600:   #132540;
+    --navy-500:   #1a2f52;
+    --gold-400:   #e8b84b;
+    --gold-300:   #f2cc7a;
+    --gold-200:   #f9e5aa;
+    --teal-400:   #2dd4bf;
+    --teal-300:   #5eead4;
+    --green-400:  #34d399;
+    --rose-400:   #fb7185;
+    --slate-300:  #cbd5e1;
+    --slate-400:  #94a3b8;
+    --slate-500:  #64748b;
+    --slate-600:  #475569;
+    --white:      #f8fafc;
+    --border-dim: rgba(232,184,75,0.12);
+    --border-glow:rgba(232,184,75,0.35);
+    --shadow-lg:  0 20px 60px rgba(0,0,0,0.6);
+    --shadow-md:  0 8px 32px rgba(0,0,0,0.4);
+    --r-xl: 20px;
+    --r-lg: 14px;
+    --r-md: 10px;
 }
 
-* { font-family: 'Cairo', 'Tajawal', sans-serif !important; direction: rtl; text-align: right; box-sizing: border-box; }
+*, *::before, *::after {
+    font-family: 'Cairo', 'Tajawal', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+    box-sizing: border-box;
+}
 
 html, body, .stApp {
-    background: var(--bg-deep) !important;
-    color: var(--text-primary) !important;
+    background: var(--navy-900) !important;
+    color: var(--white) !important;
+    min-height: 100vh;
 }
 
+/* Grid background */
 .stApp::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
+        linear-gradient(rgba(232,184,75,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,184,75,0.025) 1px, transparent 1px);
+    background-size: 72px 72px;
     pointer-events: none;
     z-index: 0;
+}
+
+/* Ambient orbs */
+.stApp::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(ellipse, rgba(232,184,75,0.06) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+    animation: orbFloat 12s ease-in-out infinite;
+}
+
+@keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%       { transform: translate(-40px, 30px) scale(1.05); }
+    66%       { transform: translate(20px, -20px) scale(0.97); }
 }
 
 #MainMenu, footer, header,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"] { display: none !important; }
 
-.hero-header {
+/* ── HERO ── */
+.hero {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #081626 0%, #0c2240 50%, #071520 100%);
+    background: linear-gradient(145deg, var(--navy-700) 0%, var(--navy-800) 60%, var(--navy-900) 100%);
     border: 1px solid var(--border-glow);
-    border-radius: var(--radius-lg);
-    padding: 2.5rem 2rem;
-    margin-bottom: 2rem;
+    border-radius: var(--r-xl);
+    padding: 3rem 2.5rem 2.5rem;
+    margin-bottom: 1.8rem;
     text-align: center;
+    animation: heroEntrance 0.7s cubic-bezier(0.22,1,0.36,1) both;
 }
-.hero-header::before {
-    content: '';
+
+@keyframes heroEntrance {
+    from { opacity: 0; transform: translateY(-24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-glow {
     position: absolute;
-    top: -60%;
-    left: 50%;
+    top: -80px; left: 50%;
     transform: translateX(-50%);
-    width: 600px;
-    height: 300px;
-    background: radial-gradient(ellipse, rgba(0,212,255,0.12) 0%, transparent 70%);
+    width: 500px; height: 260px;
+    background: radial-gradient(ellipse, rgba(232,184,75,0.18) 0%, transparent 70%);
     pointer-events: none;
 }
-.hero-header::after {
+
+.hero-line-top {
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-400), transparent);
+    animation: scanLine 3s ease-in-out infinite;
+}
+
+@keyframes scanLine {
+    0%, 100% { opacity: 0.4; transform: scaleX(0.6); }
+    50%       { opacity: 1;   transform: scaleX(1); }
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(232,184,75,0.1);
+    border: 1px solid rgba(232,184,75,0.35);
+    color: var(--gold-400);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    padding: 0.35rem 1.1rem;
+    border-radius: 50px;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    animation: fadeIn 0.5s 0.2s both;
+}
+
+.hero-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--gold-400);
+    border-radius: 50%;
+    animation: dotPulse 2s infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(232,184,75,0.6); }
+    50%       { box-shadow: 0 0 0 5px rgba(232,184,75,0); }
+}
+
+.hero-title {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 900;
+    color: var(--white);
+    margin: 0 0 0.6rem;
+    line-height: 1.2;
+    animation: fadeIn 0.5s 0.3s both;
+}
+
+.hero-title em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--gold-400), var(--gold-300), var(--teal-400));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-sub {
+    font-size: 0.95rem;
+    color: var(--slate-400);
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.8;
+    animation: fadeIn 0.5s 0.4s both;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── STATS ROW ── */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.9rem;
+    margin-bottom: 1.8rem;
+    animation: fadeIn 0.6s 0.5s both;
+}
+
+.stat-chip {
+    background: var(--navy-700);
+    border: 1px solid var(--border-dim);
+    border-radius: var(--r-lg);
+    padding: 1.1rem 0.8rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    cursor: default;
+}
+
+.stat-chip::before {
     content: '';
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
-}
-.hero-badge {
-    display: inline-block;
-    background: rgba(0,212,255,0.1);
-    border: 1px solid rgba(0,212,255,0.3);
-    color: var(--accent-cyan);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    padding: 0.3rem 1rem;
-    border-radius: 50px;
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-}
-.hero-title {
-    font-size: 2.6rem;
-    font-weight: 900;
-    color: #fff;
-    margin: 0 0 0.5rem;
-    line-height: 1.2;
-    text-shadow: 0 0 40px rgba(0,212,255,0.3);
-}
-.hero-title span { color: var(--accent-cyan); }
-.hero-subtitle {
-    font-size: 1rem;
-    color: var(--text-muted);
-    font-weight: 400;
-    max-width: 560px;
-    margin: 0 auto;
-    line-height: 1.7;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-400), transparent);
+    transform: scaleX(0);
+    transition: transform 0.4s;
 }
 
-.panel-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--radius-lg);
-    padding: 1.6rem;
-    margin-bottom: 1.2rem;
-    box-shadow: var(--shadow-card);
-    transition: border-color 0.3s;
+.stat-chip:hover { border-color: var(--border-glow); transform: translateY(-3px); }
+.stat-chip:hover::before { transform: scaleX(1); }
+
+.stat-val {
+    font-size: 1.55rem;
+    font-weight: 900;
+    color: var(--gold-400);
+    line-height: 1;
+    margin-bottom: 0.35rem;
 }
-.panel-card:hover { border-color: var(--border-glow); }
+
+.stat-label {
+    font-size: 0.73rem;
+    color: var(--slate-500);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+/* ── PANEL CARD ── */
+.panel-card {
+    background: var(--navy-700);
+    border: 1px solid var(--border-dim);
+    border-radius: var(--r-xl);
+    padding: 1.5rem;
+    margin-bottom: 1.1rem;
+    box-shadow: var(--shadow-md);
+    transition: border-color 0.35s;
+    animation: fadeIn 0.5s 0.5s both;
+}
+
+.panel-card:hover { border-color: rgba(232,184,75,0.25); }
 
 .panel-title {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--slate-300);
     margin-bottom: 1rem;
-    padding-bottom: 0.7rem;
-    border-bottom: 1px solid var(--border-soft);
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border-dim);
 }
-.panel-title .icon {
-    width: 34px; height: 34px;
-    background: rgba(0,212,255,0.1);
+
+.panel-icon {
+    width: 32px; height: 32px;
+    background: rgba(232,184,75,0.1);
+    border: 1px solid rgba(232,184,75,0.2);
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1rem;
-}
-
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-.stat-chip {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--radius-md);
-    padding: 1rem;
-    text-align: center;
-    transition: all 0.3s;
-}
-.stat-chip:hover { border-color: var(--border-glow); transform: translateY(-2px); }
-.stat-chip .stat-val {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: var(--accent-cyan);
-    line-height: 1;
-    margin-bottom: 0.3rem;
-}
-.stat-chip .stat-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 500;
-}
-
-.result-wrap {
-    border-radius: var(--radius-lg);
-    padding: 1.5rem 2rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-    animation: slideDown 0.4s ease;
-}
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-16px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-.result-inside {
-    background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,184,156,0.05));
-    border: 1px solid rgba(0,229,160,0.35);
-    box-shadow: 0 0 30px rgba(0,229,160,0.1), inset 0 1px 0 rgba(0,229,160,0.15);
-}
-.result-outside {
-    background: linear-gradient(135deg, rgba(255,92,122,0.08), rgba(239,68,68,0.05));
-    border: 1px solid rgba(255,92,122,0.35);
-    box-shadow: 0 0 30px rgba(255,92,122,0.1), inset 0 1px 0 rgba(255,92,122,0.15);
-}
-.result-icon {
-    font-size: 2.5rem;
+    font-size: 0.9rem;
     flex-shrink: 0;
-    filter: drop-shadow(0 0 8px currentColor);
-}
-.result-text-main {
-    font-size: 1.25rem;
-    font-weight: 800;
-    line-height: 1.3;
-}
-.result-inside .result-text-main { color: var(--accent-green); }
-.result-outside .result-text-main { color: var(--accent-rose); }
-.result-text-sub {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-top: 0.2rem;
 }
 
-.coords-card {
-    background: rgba(0,212,255,0.04);
-    border: 1px solid rgba(0,212,255,0.15);
-    border-radius: var(--radius-md);
-    padding: 0.9rem 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.2rem;
-}
-.coords-dot {
-    width: 10px; height: 10px;
-    background: var(--accent-cyan);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--accent-cyan);
-    flex-shrink: 0;
-    animation: pulse 2s infinite;
-}
-@keyframes pulse {
-    0%,100% { box-shadow: 0 0 5px var(--accent-cyan); }
-    50%      { box-shadow: 0 0 14px var(--accent-cyan), 0 0 22px rgba(0,212,255,0.3); }
-}
-.coords-label { font-size: 0.78rem; color: var(--text-muted); }
-.coords-value { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-
+/* ── INPUTS ── */
 div[data-testid="stTextInput"] input {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(0,212,255,0.2) !important;
-    border-radius: 10px !important;
-    color: var(--text-primary) !important;
-    padding: 0.65rem 1rem !important;
+    background: var(--navy-800) !important;
+    border: 1px solid rgba(232,184,75,0.2) !important;
+    border-radius: var(--r-md) !important;
+    color: var(--white) !important;
+    padding: 0.7rem 1rem !important;
     font-size: 0.95rem !important;
-    transition: border-color 0.2s, box-shadow 0.2s !important;
+    transition: border-color 0.25s, box-shadow 0.25s !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    caret-color: var(--gold-400) !important;
 }
+
 div[data-testid="stTextInput"] input:focus {
-    border-color: var(--accent-cyan) !important;
-    box-shadow: 0 0 0 3px rgba(0,212,255,0.12) !important;
+    border-color: var(--gold-400) !important;
+    box-shadow: 0 0 0 3px rgba(232,184,75,0.12) !important;
     outline: none !important;
+    background: rgba(9,20,36,0.9) !important;
 }
 
-div[data-testid="stFormSubmitButton"] > button {
-    background: linear-gradient(135deg, #0062cc, #00b4d8) !important;
-    border: none !important;
-    color: #fff !important;
-    border-radius: 10px !important;
-    font-weight: 800 !important;
-    font-size: 1rem !important;
-    padding: 0.75rem !important;
-    width: 100% !important;
-    box-shadow: 0 4px 20px rgba(0,180,216,0.3) !important;
-    transition: all 0.3s ease !important;
-    letter-spacing: 0.03em !important;
-}
-div[data-testid="stFormSubmitButton"] > button:hover {
-    box-shadow: 0 6px 28px rgba(0,180,216,0.5) !important;
-    transform: translateY(-3px) !important;
-    background: linear-gradient(135deg, #0070e0, #00c8f0) !important;
+div[data-testid="stTextInput"] input::placeholder {
+    color: var(--slate-600) !important;
 }
 
-div[data-testid="stTextInput"] label,
-div[data-testid="stSelectbox"] label {
-    color: var(--text-muted) !important;
-    font-size: 0.82rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.05em !important;
+div[data-testid="stTextInput"] label {
+    color: var(--slate-400) !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
-    margin-bottom: 0.3rem !important;
+    margin-bottom: 0.4rem !important;
 }
 
-div[data-testid="stAlert"] {
-    border-radius: 10px !important;
-    border-left: 3px solid var(--accent-gold) !important;
-    background: rgba(240,180,41,0.07) !important;
+/* ── BUTTONS ── */
+div[data-testid="stFormSubmitButton"] > button {
+    background: linear-gradient(135deg, #b8921e, #e8b84b, #f2cc7a) !important;
+    background-size: 200% 200% !important;
+    border: none !important;
+    color: var(--navy-900) !important;
+    border-radius: var(--r-md) !important;
+    font-weight: 900 !important;
+    font-size: 1rem !important;
+    padding: 0.8rem !important;
+    width: 100% !important;
+    letter-spacing: 0.04em !important;
+    transition: all 0.3s ease !important;
+    animation: shimmer 3s ease infinite !important;
+    box-shadow: 0 4px 20px rgba(232,184,75,0.25) !important;
 }
 
-div[data-testid="stSpinner"] p { color: var(--text-muted) !important; }
-
-.placeholder-screen {
-    height: 520px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 2px dashed rgba(0,212,255,0.12);
-    border-radius: var(--radius-lg);
-    background: var(--bg-card);
-    transition: all 0.3s;
-}
-.placeholder-screen:hover { border-color: rgba(0,212,255,0.25); }
-.placeholder-icon {
-    font-size: 4.5rem;
-    margin-bottom: 1rem;
-    opacity: 0.4;
-    filter: drop-shadow(0 0 12px rgba(0,212,255,0.4));
-}
-.placeholder-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-}
-.placeholder-desc {
-    font-size: 0.85rem;
-    color: rgba(122,154,181,0.6);
-    text-align: center;
-    max-width: 280px;
-    line-height: 1.7;
+@keyframes shimmer {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
+div[data-testid="stFormSubmitButton"] > button:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 30px rgba(232,184,75,0.45) !important;
+}
+
+div[data-testid="stFormSubmitButton"] > button:active {
+    transform: translateY(-1px) !important;
+}
+
+/* ── GPS BUTTON ── */
+div[data-testid="stButton"] > button {
+    border-radius: var(--r-md) !important;
+    font-weight: 700 !important;
+    padding: 0.65rem 1.4rem !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+}
+
+/* ── DIVIDER ── */
 .divider {
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin: 1.2rem 0;
-    color: var(--text-muted);
-    font-size: 0.8rem;
+    margin: 1rem 0;
+    color: var(--slate-600);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
 }
+
 .divider::before, .divider::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--border-soft);
+    background: var(--border-dim);
 }
 
+/* ── RESULT CARDS ── */
+.result-card {
+    border-radius: var(--r-xl);
+    padding: 1.6rem 1.8rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.2rem;
+    animation: resultPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes resultPop {
+    from { opacity: 0; transform: scale(0.92) translateY(16px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.result-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    filter: blur(40px);
+    z-index: -1;
+    opacity: 0.3;
+}
+
+.result-inside {
+    background: linear-gradient(135deg, rgba(52,211,153,0.1), rgba(45,212,191,0.06));
+    border: 1px solid rgba(52,211,153,0.4);
+    box-shadow: 0 0 40px rgba(52,211,153,0.12), inset 0 1px 0 rgba(52,211,153,0.2);
+}
+
+.result-outside {
+    background: linear-gradient(135deg, rgba(251,113,133,0.1), rgba(239,68,68,0.06));
+    border: 1px solid rgba(251,113,133,0.4);
+    box-shadow: 0 0 40px rgba(251,113,133,0.12), inset 0 1px 0 rgba(251,113,133,0.2);
+}
+
+.result-emoji {
+    font-size: 2.8rem;
+    line-height: 1;
+    flex-shrink: 0;
+    animation: bounceIn 0.6s 0.2s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+@keyframes bounceIn {
+    from { opacity: 0; transform: scale(0.3) rotate(-15deg); }
+    to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.result-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 0.3rem;
+}
+
+.result-inside .result-title  { color: var(--green-400); }
+.result-outside .result-title { color: var(--rose-400); }
+
+.result-desc {
+    font-size: 0.83rem;
+    color: var(--slate-400);
+    line-height: 1.6;
+}
+
+/* ── COORDS DISPLAY ── */
+.coords-display {
+    background: var(--navy-800);
+    border: 1px solid rgba(232,184,75,0.18);
+    border-radius: var(--r-lg);
+    padding: 1rem 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+    animation: fadeIn 0.4s 0.3s both;
+}
+
+.coords-pulse {
+    width: 10px; height: 10px;
+    background: var(--gold-400);
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: coordsPulse 2s ease-in-out infinite;
+}
+
+@keyframes coordsPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(232,184,75,0.5); }
+    50%       { box-shadow: 0 0 0 8px rgba(232,184,75,0); }
+}
+
+.coords-lbl { font-size: 0.73rem; color: var(--slate-500); font-weight: 600; letter-spacing: 0.06em; margin-bottom: 0.2rem; }
+.coords-val { font-size: 0.97rem; font-weight: 700; color: var(--gold-300); font-variant-numeric: tabular-nums; direction: ltr; text-align: left; }
+
+/* ── MAP HEADER ── */
 .map-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.75rem;
+    animation: fadeIn 0.4s 0.4s both;
 }
-.map-title {
-    font-size: 0.95rem;
+
+.map-label {
+    font-size: 0.9rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--slate-300);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-.map-badge {
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 0.25rem 0.75rem;
+
+.live-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--green-400);
+    border: 1px solid rgba(52,211,153,0.35);
+    background: rgba(52,211,153,0.07);
+    padding: 0.2rem 0.65rem;
     border-radius: 50px;
-    border: 1px solid;
-}
-.badge-live {
-    color: var(--accent-green);
-    border-color: rgba(0,229,160,0.3);
-    background: rgba(0,229,160,0.07);
-    animation: blinkBadge 2s infinite;
-}
-@keyframes blinkBadge {
-    0%,100% { opacity: 1; }
-    50%      { opacity: 0.5; }
+    letter-spacing: 0.08em;
+    animation: liveBlink 2.5s ease-in-out infinite;
 }
 
-section[data-testid="stSidebar"] { background: var(--bg-mid) !important; }
+@keyframes liveBlink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.45; }
+}
+
+/* ── PLACEHOLDER ── */
+.placeholder {
+    height: 530px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed rgba(232,184,75,0.1);
+    border-radius: var(--r-xl);
+    background: var(--navy-700);
+    transition: border-color 0.3s;
+    animation: fadeIn 0.5s 0.6s both;
+    position: relative;
+    overflow: hidden;
+}
+
+.placeholder::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(232,184,75,0.05) 0%, transparent 65%);
+    border-radius: 50%;
+    animation: placeholderPulse 4s ease-in-out infinite;
+}
+
+@keyframes placeholderPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+    50%       { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
+
+.placeholder:hover { border-color: rgba(232,184,75,0.22); }
+
+.placeholder-icon {
+    font-size: 4.5rem;
+    opacity: 0.25;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 20px rgba(232,184,75,0.4));
+    animation: iconFloat 4s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-10px); }
+}
+
+.placeholder-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--slate-500);
+    margin-bottom: 0.5rem;
+}
+
+.placeholder-desc {
+    font-size: 0.82rem;
+    color: var(--slate-600);
+    text-align: center;
+    max-width: 260px;
+    line-height: 1.7;
+}
+
+/* ── TIP BOX ── */
+.tip-box {
+    margin-top: 0.8rem;
+    padding: 0.8rem 1rem;
+    background: rgba(232,184,75,0.05);
+    border-right: 3px solid rgba(232,184,75,0.4);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: #c9a44a;
+    line-height: 1.6;
+}
+
+/* ── GPS STATUS ── */
+.gps-success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(52,211,153,0.06);
+    border: 1px solid rgba(52,211,153,0.25);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+    color: var(--green-400);
+    margin-top: 0.6rem;
+    animation: fadeIn 0.3s both;
+}
+
+div[data-testid="stAlert"] {
+    border-radius: var(--r-md) !important;
+    background: rgba(232,184,75,0.06) !important;
+    border: 1px solid rgba(232,184,75,0.25) !important;
+    border-left: none !important;
+    border-right: 3px solid var(--gold-400) !important;
+}
+
+div[data-testid="stSpinner"] p { color: var(--slate-400) !important; font-size: 0.85rem !important; }
+
+section[data-testid="stSidebar"] { background: var(--navy-800) !important; }
+
+/* Scroll reveal utility */
+.reveal { animation: fadeIn 0.5s both; }
 </style>
 """, unsafe_allow_html=True)
 
-# تنسيق ديناميكي لزر الـ GPS حسب الحالة
+# تنسيق زر GPS حسب الحالة
 if st.session_state.gps_active:
-    btn_bg = "rgba(0, 229, 160, 0.15)"
-    btn_border = "#00e5a0"
-    btn_color = "#00e5a0"
-    btn_hover_bg = "rgba(0, 229, 160, 0.25)"
-    btn_shadow = "rgba(0, 229, 160, 0.3)"
+    gps_css = """
+    <style>
+    div[data-testid="stButton"] > button {
+        background: rgba(52,211,153,0.1) !important;
+        border: 1px solid rgba(52,211,153,0.5) !important;
+        color: #34d399 !important;
+        box-shadow: 0 0 20px rgba(52,211,153,0.15) !important;
+    }
+    div[data-testid="stButton"] > button:hover {
+        background: rgba(52,211,153,0.18) !important;
+        box-shadow: 0 4px 24px rgba(52,211,153,0.3) !important;
+        transform: translateY(-2px) !important;
+    }
+    </style>
+    """
 else:
-    btn_bg = "rgba(122, 154, 181, 0.1)"
-    btn_border = "#7a9ab5"
-    btn_color = "#7a9ab5"
-    btn_hover_bg = "rgba(122, 154, 181, 0.2)"
-    btn_shadow = "rgba(122, 154, 181, 0.25)"
-
-st.markdown(f"""
-<style>
-div[data-testid="stButton"] > button {{
-    background: {btn_bg} !important;
-    border: 1px solid {btn_border} !important;
-    color: {btn_color} !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    padding: 0.6rem 1.4rem !important;
-    transition: all 0.3s ease !important;
-    width: 100% !important;
-}}
-div[data-testid="stButton"] > button:hover {{
-    background: {btn_hover_bg} !important;
-    border-color: {btn_border} !important;
-    box-shadow: 0 4px 16px {btn_shadow} !important;
-    transform: translateY(-2px) !important;
-}}
-</style>
-""", unsafe_allow_html=True)
+    gps_css = """
+    <style>
+    div[data-testid="stButton"] > button {
+        background: rgba(100,116,139,0.12) !important;
+        border: 1px solid rgba(100,116,139,0.35) !important;
+        color: #94a3b8 !important;
+    }
+    div[data-testid="stButton"] > button:hover {
+        background: rgba(100,116,139,0.22) !important;
+        border-color: rgba(148,163,184,0.5) !important;
+        transform: translateY(-2px) !important;
+    }
+    </style>
+    """
+st.markdown(gps_css, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 3. البيانات الأساسية
+# 3. البيانات
 # ─────────────────────────────────────────────
 BOUNDARY_POINTS_1 = [
     (30.722009, 31.295623), (30.721122, 31.295481),
@@ -485,7 +725,7 @@ BOUNDARY_POINTS_2 = [
 ]
 
 # ─────────────────────────────────────────────
-# 4. المنطق والدوال
+# 4. الدوال
 # ─────────────────────────────────────────────
 @st.cache_resource
 def build_polygons():
@@ -528,7 +768,6 @@ def build_map(lat: float, lon: float, is_inside: bool):
         control_scale=True,
         tiles=None
     )
-
     folium.TileLayer(
         tiles="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
         attr="Google Satellite",
@@ -542,58 +781,63 @@ def build_map(lat: float, lon: float, is_inside: bool):
         overlay=False
     ).add_to(m)
 
-    poly_kw = dict(color="#00d4ff", weight=2.5, fillColor="#00b4d8", fillOpacity=0.12, dashArray="")
-    folium.Polygon(locations=BOUNDARY_POINTS_1, **poly_kw, tooltip="<b>المنطقة الأولى</b>").add_to(m)
-    folium.Polygon(locations=BOUNDARY_POINTS_2, **poly_kw, tooltip="<b>المنطقة الثانية</b>").add_to(m)
+    # رسم حدود المنطقتين
+    poly_style = dict(color="#e8b84b", weight=2.5, fillColor="#e8b84b", fillOpacity=0.08, dashArray="6 4")
+    folium.Polygon(locations=BOUNDARY_POINTS_1, **poly_style, tooltip="<b style='font-family:Cairo'>المنطقة الأولى</b>").add_to(m)
+    folium.Polygon(locations=BOUNDARY_POINTS_2, **poly_style, tooltip="<b style='font-family:Cairo'>المنطقة الثانية</b>").add_to(m)
 
-    color = "#00e5a0" if is_inside else "#ff5c7a"
-    status = "✅ داخل الحيز" if is_inside else "⛔ خارج الحيز"
+    color   = "#34d399" if is_inside else "#fb7185"
+    status  = "✅ داخل الحيز" if is_inside else "⛔ خارج الحيز"
 
-    folium.CircleMarker(
-        location=[lat, lon],
-        radius=22, color=color, weight=1.5,
-        fill=True, fill_color=color, fill_opacity=0.12
-    ).add_to(m)
-    folium.CircleMarker(
-        location=[lat, lon],
-        radius=10, color=color, weight=2.5,
-        fill=True, fill_color=color, fill_opacity=0.4
-    ).add_to(m)
+    # حلقات نابضة
+    for r, op in [(30, 0.06), (16, 0.14), (8, 0.35)]:
+        folium.CircleMarker(
+            location=[lat, lon],
+            radius=r, color=color, weight=1.5,
+            fill=True, fill_color=color, fill_opacity=op
+        ).add_to(m)
 
     folium.Marker(
         location=[lat, lon],
         tooltip=folium.Tooltip(
-            f"<div style='direction:rtl;text-align:right;font-family:Cairo,sans-serif;min-width:160px'>"
-            f"<b style='font-size:14px'>{status}</b><br>"
-            f"<span style='color:#888'>خط عرض:</span> {lat:.6f}<br>"
-            f"<span style='color:#888'>خط طول:</span> {lon:.6f}"
-            f"</div>",
+            f"""<div style='direction:rtl;text-align:right;font-family:Cairo,sans-serif;
+                min-width:170px;padding:4px'>
+                <b style='font-size:14px;color:{"#34d399" if is_inside else "#fb7185"}'>{status}</b><br>
+                <span style='color:#64748b;font-size:12px'>خط عرض:</span>
+                <span style='font-size:12px'> {lat:.6f}</span><br>
+                <span style='color:#64748b;font-size:12px'>خط طول:</span>
+                <span style='font-size:12px'> {lon:.6f}</span>
+            </div>""",
             permanent=False
         ),
-        icon=folium.Icon(
-            color="green" if is_inside else "red",
-            icon="map-marker",
-            prefix="fa"
-        )
+        icon=folium.Icon(color="green" if is_inside else "red", icon="map-marker", prefix="fa")
     ).add_to(m)
 
     folium.LayerControl(collapsed=False).add_to(m)
     return m
 
 # ─────────────────────────────────────────────
-# 5. الواجهة الرئيسية (UI)
+# 5. الواجهة
 # ─────────────────────────────────────────────
+
+# HERO
 st.markdown("""
-<div class="hero-header">
-    <div class="hero-badge">🏙️ نظام ذكي &nbsp;|&nbsp; إصدار 2.0</div>
-    <h1 class="hero-title">الاستعلام عن <span>الحيز العمراني</span></h1>
-    <p class="hero-subtitle">
+<div class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-line-top"></div>
+    <div class="hero-badge">
+        <span class="dot"></span>
+        نظام ذكي &nbsp;·&nbsp; إصدار 2.1
+    </div>
+    <h1 class="hero-title">الاستعلام عن <em>الحيز العمراني</em></h1>
+    <p class="hero-sub">
         تحقق فوري من موقع أي قطعة أرض أو مبنى داخل أو خارج النطاق العمراني المعتمد
         باستخدام إحداثياتك الجغرافية الدقيقة
     </p>
 </div>
 """, unsafe_allow_html=True)
 
+# STATS
 st.markdown("""
 <div class="stats-row">
     <div class="stat-chip">
@@ -601,42 +845,39 @@ st.markdown("""
         <div class="stat-label">نطاق عمراني معتمد</div>
     </div>
     <div class="stat-chip">
-        <div class="stat-val" style="color:#00e5a0">GPS</div>
+        <div class="stat-val" style="font-size:1.2rem">GPS</div>
         <div class="stat-label">تحديد تلقائي بالموقع</div>
     </div>
     <div class="stat-chip">
-        <div class="stat-val" style="color:#f0b429">DMS</div>
+        <div class="stat-val" style="font-size:1.2rem;color:var(--teal-400)">DMS</div>
         <div class="stat-label">دعم صيغ متعددة</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
+# COLUMNS
 col_input, col_result = st.columns([1, 2.2], gap="large")
 
 with col_input:
-    # ── بطاقة زر الـ GPS المخصصة ──
+    # ── GPS CARD ──
     st.markdown("""
     <div class="panel-card">
         <div class="panel-title">
-            <span class="icon">📡</span>
+            <span class="panel-icon">📡</span>
             تحديد الموقع عبر GPS
         </div>
-        <p style="font-size:0.85rem;color:#7a9ab5;margin:0 0 1rem;">
-            قم بتفعيل الزر أدناه لالتقاط إحداثياتك الحالية مباشرةً
+        <p style="font-size:0.82rem;color:var(--slate-500);margin:0 0 0.9rem;line-height:1.6;">
+            فعّل الزر لالتقاط إحداثياتك الحالية تلقائياً
         </p>
     """, unsafe_allow_html=True)
 
-    # الزر التفاعلي
     st.button(
-        "🟢 التقاط الموقع مفعّل (اضغط للإيقاف)" if st.session_state.gps_active else "⚪ تفعيل التقاط الموقع",
+        "🟢  التقاط الموقع — مفعّل  (اضغط للإيقاف)" if st.session_state.gps_active
+        else "📍  تفعيل التقاط الموقع",
         on_click=toggle_gps,
         use_container_width=True
     )
-    
-    # إغلاق بطاقة الـ GPS
-    st.markdown("</div>", unsafe_allow_html=True)
 
-    # تشغيل أمر التقاط الموقع فقط عندما يكون الزر مفعلاً
     if st.session_state.gps_active:
         try:
             loc = get_geolocation(component_key="get_loc")
@@ -644,47 +885,51 @@ with col_input:
                 gps_lat = loc["coords"]["latitude"]
                 gps_lon = loc["coords"]["longitude"]
                 new_coords = f"{gps_lat:.6f}, {gps_lon:.6f}"
-                
-                # تحديث حقل الإدخال إذا كانت الإحداثيات جديدة لمنع إعادة التحميل اللانهائية
-                if st.session_state.get("coord_input") != new_coords:
+                if st.session_state.get("last_gps_coords") != new_coords:
+                    st.session_state.last_gps_coords = new_coords
                     st.session_state.coord_input = new_coords
                     st.rerun()
-                
-                st.success(f"✅ تم التقاط الموقع بنجاح!")
+                st.markdown("""
+                <div class="gps-success">
+                    <span>●</span> تم التقاط الموقع بنجاح
+                </div>
+                """, unsafe_allow_html=True)
         except Exception:
             pass
 
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # DIVIDER
     st.markdown('<div class="divider">أو أدخل يدوياً</div>', unsafe_allow_html=True)
 
-    # ── بطاقة الإدخال اليدوي ──
+    # ── INPUT CARD ──
     st.markdown("""
     <div class="panel-card">
         <div class="panel-title">
-            <span class="icon">✏️</span>
+            <span class="panel-icon">✏️</span>
             إدخال الإحداثيات
         </div>
     """, unsafe_allow_html=True)
 
     with st.form("coord_form", clear_on_submit=False):
-        # استخدام key="coord_input" يربط الحقل مباشرة بالجلسة، مما يحفظ الرقم المدخل
         user_input = st.text_input(
             "خط العرض , خط الطول",
+            value=st.session_state.coord_input,
             key="coord_input",
-            placeholder="مثال:  30.727313, 31.284638",
-            help="الصيغة العشرية: 30.727313, 31.284638  |  صيغة DMS: 30°43'38.3\"N 31°17'4.7\"E"
+            placeholder="مثال:  30.727313 , 31.284638",
+            help="الصيغة العشرية: 30.727313, 31.284638  |  DMS: 30°43'38.3\"N 31°17'4.7\"E"
         )
         submitted = st.form_submit_button("🔍  بدء الفحص والاستعلام", use_container_width=True)
-    
+
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # TIP
     st.markdown("""
-    <div style="margin-top:0.5rem;padding:0.75rem 1rem;background:rgba(240,180,41,0.06);
-         border-right:3px solid rgba(240,180,41,0.5);border-radius:8px;">
-        <p style="font-size:0.78rem;color:#c9a44a;margin:0;line-height:1.6;">
-            <b>💡 تلميح:</b> يمكنك نسخ الإحداثيات مباشرة من خرائط جوجل
-        </p>
+    <div class="tip-box">
+        💡 <b>تلميح:</b> يمكنك نسخ الإحداثيات مباشرةً من خرائط جوجل ولصقها هنا
     </div>
     """, unsafe_allow_html=True)
+
 
 with col_result:
     if submitted:
@@ -699,59 +944,57 @@ with col_result:
 
                 if is_inside:
                     st.markdown("""
-                    <div class="result-wrap result-inside">
-                        <span class="result-icon">✅</span>
+                    <div class="result-card result-inside">
+                        <span class="result-emoji">✅</span>
                         <div>
-                            <div class="result-text-main">الموقع يقع داخل الحيز العمراني المعتمد</div>
-                            <div class="result-text-sub">هذا الموقع ضمن النطاق الرسمي المعتمد للتخطيط العمراني</div>
+                            <div class="result-title">الموقع داخل الحيز العمراني المعتمد</div>
+                            <div class="result-desc">هذا الموقع ضمن النطاق الرسمي المعتمد للتخطيط العمراني</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                 else:
                     st.markdown("""
-                    <div class="result-wrap result-outside">
-                        <span class="result-icon">⛔</span>
+                    <div class="result-card result-outside">
+                        <span class="result-emoji">⛔</span>
                         <div>
-                            <div class="result-text-main">الموقع يقع خارج الحيز العمراني</div>
-                            <div class="result-text-sub">هذا الموقع خارج النطاق العمراني الرسمي المعتمد حالياً</div>
+                            <div class="result-title">الموقع خارج الحيز العمراني</div>
+                            <div class="result-desc">هذا الموقع خارج النطاق العمراني الرسمي المعتمد حالياً</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
 
                 st.markdown(f"""
-                <div class="coords-card">
-                    <span class="coords-dot"></span>
+                <div class="coords-display">
+                    <span class="coords-pulse"></span>
                     <div>
-                        <div class="coords-label">الإحداثيات المستخدمة في الفحص</div>
-                        <div class="coords-value">
-                            {lat:.6f}&nbsp;&nbsp;,&nbsp;&nbsp;{lon:.6f}
-                        </div>
+                        <div class="coords-lbl">الإحداثيات المستخدمة في الفحص</div>
+                        <div class="coords-val">{lat:.6f} &nbsp;,&nbsp; {lon:.6f}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
                 st.markdown("""
                 <div class="map-header">
-                    <span class="map-title">🗺️ الخريطة التفاعلية</span>
-                    <span class="map-badge badge-live">● مباشر</span>
+                    <span class="map-label">🗺️ الخريطة التفاعلية</span>
+                    <span class="live-badge">● مباشر</span>
                 </div>
                 """, unsafe_allow_html=True)
 
-                with st.spinner("⏳ جارٍ تحميل الخريطة التفاعلية..."):
+                with st.spinner("جارٍ تحميل الخريطة…"):
                     m = build_map(lat, lon, is_inside)
                     st_folium(m, width="100%", height=470, returned_objects=[])
 
             else:
-                st.error("❌ صيغة الإحداثيات غير صحيحة. يرجى التأكد من إدخال الأرقام بالشكل الصحيح مثل: **30.727313, 31.284638**")
+                st.error("❌ صيغة الإحداثيات غير صحيحة — يرجى المحاولة بالشكل: **30.727313, 31.284638**")
 
     else:
         st.markdown("""
-        <div class="placeholder-screen">
+        <div class="placeholder">
             <div class="placeholder-icon">🗺️</div>
             <div class="placeholder-title">الخريطة التفاعلية</div>
             <div class="placeholder-desc">
-                أدخل إحداثيات الموقع أو قم بتفعيل التقاط الموقع<br>
-                ثم اضغط على "بدء الفحص" لعرض النتيجة
+                أدخل إحداثيات الموقع أو فعّل GPS<br>
+                ثم اضغط «بدء الفحص» لعرض النتيجة
             </div>
         </div>
         """, unsafe_allow_html=True)
