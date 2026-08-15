@@ -14,7 +14,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-
 # تهيئة حالة زر الـ GPS
 if "gps_active" not in st.session_state:
     st.session_state.gps_active = False
