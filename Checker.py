@@ -33,27 +33,36 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap');
 
 :root {
-    --navy-900:   #050d1a;
-    --navy-800:   #091424;
-    --navy-700:   #0e1e34;
-    --navy-600:   #132540;
-    --navy-500:   #1a2f52;
-    --gold-400:   #e8b84b;
-    --gold-300:   #f2cc7a;
-    --gold-200:   #f9e5aa;
-    --teal-400:   #2dd4bf;
-    --teal-300:   #5eead4;
-    --green-400:  #34d399;
-    --rose-400:   #fb7185;
-    --slate-300:  #cbd5e1;
-    --slate-400:  #94a3b8;
-    --slate-500:  #64748b;
-    --slate-600:  #475569;
-    --white:      #f8fafc;
-    --border-dim: rgba(232,184,75,0.12);
-    --border-glow:rgba(232,184,75,0.35);
-    --shadow-lg:  0 20px 60px rgba(0,0,0,0.6);
-    --shadow-md:  0 8px 32px rgba(0,0,0,0.4);
+    --bg-page:    #f5f7fa;
+    --bg-white:   #ffffff;
+    --bg-soft:    #eef1f6;
+    --bg-card:    #ffffff;
+    --gold-500:   #c8950a;
+    --gold-400:   #e8a800;
+    --gold-300:   #f5c842;
+    --gold-100:   #fff8e1;
+    --teal-500:   #0d9488;
+    --teal-400:   #14b8a6;
+    --green-600:  #059669;
+    --green-400:  #10b981;
+    --green-50:   #ecfdf5;
+    --rose-600:   #e11d48;
+    --rose-400:   #f43f5e;
+    --rose-50:    #fff1f2;
+    --ink-900:    #0f172a;
+    --ink-700:    #1e293b;
+    --ink-500:    #334155;
+    --ink-400:    #475569;
+    --ink-300:    #64748b;
+    --ink-200:    #94a3b8;
+    --ink-100:    #cbd5e1;
+    --ink-50:     #f1f5f9;
+    --border-dim: rgba(0,0,0,0.07);
+    --border-med: rgba(0,0,0,0.12);
+    --border-gold:rgba(232,168,0,0.35);
+    --shadow-sm:  0 1px 4px rgba(0,0,0,0.06);
+    --shadow-md:  0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg:  0 12px 40px rgba(0,0,0,0.12);
     --r-xl: 20px;
     --r-lg: 14px;
     --r-md: 10px;
@@ -67,19 +76,19 @@ st.markdown("""
 }
 
 html, body, .stApp {
-    background: var(--navy-900) !important;
-    color: var(--white) !important;
+    background: var(--bg-page) !important;
+    color: var(--ink-900) !important;
     min-height: 100vh;
 }
 
-/* Grid background */
+/* Grid background subtle */
 .stApp::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-        linear-gradient(rgba(232,184,75,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(232,184,75,0.025) 1px, transparent 1px);
+        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
     background-size: 72px 72px;
     pointer-events: none;
     z-index: 0;
@@ -93,7 +102,7 @@ html, body, .stApp {
     right: -200px;
     width: 700px;
     height: 700px;
-    background: radial-gradient(ellipse, rgba(232,184,75,0.06) 0%, transparent 65%);
+    background: radial-gradient(ellipse, rgba(232,168,0,0.07) 0%, transparent 65%);
     pointer-events: none;
     z-index: 0;
     animation: orbFloat 12s ease-in-out infinite;
@@ -113,12 +122,13 @@ html, body, .stApp {
 .hero {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(145deg, var(--navy-700) 0%, var(--navy-800) 60%, var(--navy-900) 100%);
-    border: 1px solid var(--border-glow);
+    background: linear-gradient(145deg, #ffffff 0%, #fefce8 50%, #fff8e1 100%);
+    border: 1px solid rgba(232,168,0,0.25);
     border-radius: var(--r-xl);
     padding: 3rem 2.5rem 2.5rem;
     margin-bottom: 1.8rem;
     text-align: center;
+    box-shadow: var(--shadow-md);
     animation: heroEntrance 0.7s cubic-bezier(0.22,1,0.36,1) both;
 }
 
@@ -132,7 +142,7 @@ html, body, .stApp {
     top: -80px; left: 50%;
     transform: translateX(-50%);
     width: 500px; height: 260px;
-    background: radial-gradient(ellipse, rgba(232,184,75,0.18) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(232,168,0,0.12) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -181,7 +191,7 @@ html, body, .stApp {
 .hero-title {
     font-size: clamp(2rem, 4vw, 2.8rem);
     font-weight: 900;
-    color: var(--white);
+    color: var(--ink-900);
     margin: 0 0 0.6rem;
     line-height: 1.2;
     animation: fadeIn 0.5s 0.3s both;
@@ -189,7 +199,7 @@ html, body, .stApp {
 
 .hero-title em {
     font-style: normal;
-    background: linear-gradient(135deg, var(--gold-400), var(--gold-300), var(--teal-400));
+    background: linear-gradient(135deg, var(--gold-500), var(--gold-400), var(--teal-500));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -197,7 +207,7 @@ html, body, .stApp {
 
 .hero-sub {
     font-size: 0.95rem;
-    color: var(--slate-400);
+    color: var(--ink-300);
     max-width: 540px;
     margin: 0 auto;
     line-height: 1.8;
@@ -219,15 +229,16 @@ html, body, .stApp {
 }
 
 .stat-chip {
-    background: var(--navy-700);
+    background: var(--bg-white);
     border: 1px solid var(--border-dim);
     border-radius: var(--r-lg);
     padding: 1.1rem 0.8rem;
     text-align: center;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.3s, transform 0.3s;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
     cursor: default;
+    box-shadow: var(--shadow-sm);
 }
 
 .stat-chip::before {
@@ -240,37 +251,37 @@ html, body, .stApp {
     transition: transform 0.4s;
 }
 
-.stat-chip:hover { border-color: var(--border-glow); transform: translateY(-3px); }
+.stat-chip:hover { border-color: var(--border-gold); transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .stat-chip:hover::before { transform: scaleX(1); }
 
 .stat-val {
     font-size: 1.55rem;
     font-weight: 900;
-    color: var(--gold-400);
+    color: var(--gold-500);
     line-height: 1;
     margin-bottom: 0.35rem;
 }
 
 .stat-label {
     font-size: 0.73rem;
-    color: var(--slate-500);
+    color: var(--ink-300);
     font-weight: 600;
     letter-spacing: 0.04em;
 }
 
 /* ── PANEL CARD ── */
 .panel-card {
-    background: var(--navy-700);
+    background: var(--bg-white);
     border: 1px solid var(--border-dim);
     border-radius: var(--r-xl);
     padding: 1.5rem;
     margin-bottom: 1.1rem;
-    box-shadow: var(--shadow-md);
-    transition: border-color 0.35s;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.35s, box-shadow 0.35s;
     animation: fadeIn 0.5s 0.5s both;
 }
 
-.panel-card:hover { border-color: rgba(232,184,75,0.25); }
+.panel-card:hover { border-color: var(--border-gold); box-shadow: var(--shadow-md); }
 
 .panel-title {
     display: flex;
@@ -278,7 +289,7 @@ html, body, .stApp {
     gap: 10px;
     font-size: 0.95rem;
     font-weight: 700;
-    color: var(--slate-300);
+    color: var(--ink-700);
     margin-bottom: 1rem;
     padding-bottom: 0.8rem;
     border-bottom: 1px solid var(--border-dim);
@@ -286,8 +297,8 @@ html, body, .stApp {
 
 .panel-icon {
     width: 32px; height: 32px;
-    background: rgba(232,184,75,0.1);
-    border: 1px solid rgba(232,184,75,0.2);
+    background: var(--gold-100);
+    border: 1px solid rgba(232,168,0,0.25);
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     font-size: 0.9rem;
@@ -296,32 +307,32 @@ html, body, .stApp {
 
 /* ── INPUTS ── */
 div[data-testid="stTextInput"] input {
-    background: var(--navy-800) !important;
-    border: 1px solid rgba(232,184,75,0.2) !important;
+    background: var(--bg-soft) !important;
+    border: 1px solid var(--border-med) !important;
     border-radius: var(--r-md) !important;
-    color: var(--white) !important;
+    color: var(--ink-900) !important;
     padding: 0.7rem 1rem !important;
     font-size: 0.95rem !important;
     transition: border-color 0.25s, box-shadow 0.25s !important;
     pointer-events: auto !important;
     user-select: text !important;
     -webkit-user-select: text !important;
-    caret-color: var(--gold-400) !important;
+    caret-color: var(--gold-500) !important;
 }
 
 div[data-testid="stTextInput"] input:focus {
     border-color: var(--gold-400) !important;
-    box-shadow: 0 0 0 3px rgba(232,184,75,0.12) !important;
+    box-shadow: 0 0 0 3px rgba(232,168,0,0.12) !important;
     outline: none !important;
-    background: rgba(9,20,36,0.9) !important;
+    background: #ffffff !important;
 }
 
 div[data-testid="stTextInput"] input::placeholder {
-    color: var(--slate-600) !important;
+    color: var(--ink-200) !important;
 }
 
 div[data-testid="stTextInput"] label {
-    color: var(--slate-400) !important;
+    color: var(--ink-400) !important;
     font-size: 0.78rem !important;
     font-weight: 700 !important;
     letter-spacing: 0.08em !important;
@@ -376,7 +387,7 @@ div[data-testid="stButton"] > button {
     align-items: center;
     gap: 1rem;
     margin: 1rem 0;
-    color: var(--slate-600);
+    color: var(--ink-200);
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -418,15 +429,15 @@ div[data-testid="stButton"] > button {
 }
 
 .result-inside {
-    background: linear-gradient(135deg, rgba(52,211,153,0.1), rgba(45,212,191,0.06));
-    border: 1px solid rgba(52,211,153,0.4);
-    box-shadow: 0 0 40px rgba(52,211,153,0.12), inset 0 1px 0 rgba(52,211,153,0.2);
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf9);
+    border: 1px solid rgba(16,185,129,0.35);
+    box-shadow: 0 4px 20px rgba(16,185,129,0.1), inset 0 1px 0 rgba(16,185,129,0.15);
 }
 
 .result-outside {
-    background: linear-gradient(135deg, rgba(251,113,133,0.1), rgba(239,68,68,0.06));
-    border: 1px solid rgba(251,113,133,0.4);
-    box-shadow: 0 0 40px rgba(251,113,133,0.12), inset 0 1px 0 rgba(251,113,133,0.2);
+    background: linear-gradient(135deg, #fff1f2, #fef2f2);
+    border: 1px solid rgba(244,63,94,0.35);
+    box-shadow: 0 4px 20px rgba(244,63,94,0.1), inset 0 1px 0 rgba(244,63,94,0.15);
 }
 
 .result-emoji {
@@ -448,19 +459,19 @@ div[data-testid="stButton"] > button {
     margin-bottom: 0.3rem;
 }
 
-.result-inside .result-title  { color: var(--green-400); }
-.result-outside .result-title { color: var(--rose-400); }
+.result-inside .result-title  { color: var(--green-600); }
+.result-outside .result-title { color: var(--rose-600); }
 
 .result-desc {
     font-size: 0.83rem;
-    color: var(--slate-400);
+    color: var(--ink-400);
     line-height: 1.6;
 }
 
 /* ── COORDS DISPLAY ── */
 .coords-display {
-    background: var(--navy-800);
-    border: 1px solid rgba(232,184,75,0.18);
+    background: var(--gold-100);
+    border: 1px solid rgba(232,168,0,0.25);
     border-radius: var(--r-lg);
     padding: 1rem 1.3rem;
     display: flex;
@@ -472,19 +483,19 @@ div[data-testid="stButton"] > button {
 
 .coords-pulse {
     width: 10px; height: 10px;
-    background: var(--gold-400);
+    background: var(--gold-500);
     border-radius: 50%;
     flex-shrink: 0;
     animation: coordsPulse 2s ease-in-out infinite;
 }
 
 @keyframes coordsPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(232,184,75,0.5); }
-    50%       { box-shadow: 0 0 0 8px rgba(232,184,75,0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,149,10,0.5); }
+    50%       { box-shadow: 0 0 0 8px rgba(200,149,10,0); }
 }
 
-.coords-lbl { font-size: 0.73rem; color: var(--slate-500); font-weight: 600; letter-spacing: 0.06em; margin-bottom: 0.2rem; }
-.coords-val { font-size: 0.97rem; font-weight: 700; color: var(--gold-300); font-variant-numeric: tabular-nums; direction: ltr; text-align: left; }
+.coords-lbl { font-size: 0.73rem; color: var(--ink-300); font-weight: 600; letter-spacing: 0.06em; margin-bottom: 0.2rem; }
+.coords-val { font-size: 0.97rem; font-weight: 700; color: var(--gold-500); font-variant-numeric: tabular-nums; direction: ltr; text-align: left; }
 
 /* ── MAP HEADER ── */
 .map-header {
@@ -498,7 +509,7 @@ div[data-testid="stButton"] > button {
 .map-label {
     font-size: 0.9rem;
     font-weight: 700;
-    color: var(--slate-300);
+    color: var(--ink-700);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -507,9 +518,9 @@ div[data-testid="stButton"] > button {
 .live-badge {
     font-size: 0.68rem;
     font-weight: 700;
-    color: var(--green-400);
-    border: 1px solid rgba(52,211,153,0.35);
-    background: rgba(52,211,153,0.07);
+    color: var(--green-600);
+    border: 1px solid rgba(5,150,105,0.3);
+    background: var(--green-50);
     padding: 0.2rem 0.65rem;
     border-radius: 50px;
     letter-spacing: 0.08em;
@@ -528,13 +539,14 @@ div[data-testid="stButton"] > button {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 2px dashed rgba(232,184,75,0.1);
+    border: 2px dashed rgba(232,168,0,0.2);
     border-radius: var(--r-xl);
-    background: var(--navy-700);
+    background: var(--bg-white);
     transition: border-color 0.3s;
     animation: fadeIn 0.5s 0.6s both;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .placeholder::before {
@@ -543,7 +555,7 @@ div[data-testid="stButton"] > button {
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(232,184,75,0.05) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(232,168,0,0.06) 0%, transparent 65%);
     border-radius: 50%;
     animation: placeholderPulse 4s ease-in-out infinite;
 }
@@ -553,13 +565,13 @@ div[data-testid="stButton"] > button {
     50%       { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
 }
 
-.placeholder:hover { border-color: rgba(232,184,75,0.22); }
+.placeholder:hover { border-color: rgba(232,168,0,0.35); }
 
 .placeholder-icon {
     font-size: 4.5rem;
-    opacity: 0.25;
+    opacity: 0.2;
     margin-bottom: 1rem;
-    filter: drop-shadow(0 0 20px rgba(232,184,75,0.4));
+    filter: drop-shadow(0 0 12px rgba(232,168,0,0.3));
     animation: iconFloat 4s ease-in-out infinite;
 }
 
@@ -571,13 +583,13 @@ div[data-testid="stButton"] > button {
 .placeholder-title {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--slate-500);
+    color: var(--ink-200);
     margin-bottom: 0.5rem;
 }
 
 .placeholder-desc {
     font-size: 0.82rem;
-    color: var(--slate-600);
+    color: var(--ink-100);
     text-align: center;
     max-width: 260px;
     line-height: 1.7;
@@ -587,11 +599,11 @@ div[data-testid="stButton"] > button {
 .tip-box {
     margin-top: 0.8rem;
     padding: 0.8rem 1rem;
-    background: rgba(232,184,75,0.05);
-    border-right: 3px solid rgba(232,184,75,0.4);
+    background: var(--gold-100);
+    border-right: 3px solid var(--gold-400);
     border-radius: 8px;
     font-size: 0.78rem;
-    color: #c9a44a;
+    color: var(--gold-500);
     line-height: 1.6;
 }
 
@@ -600,27 +612,28 @@ div[data-testid="stButton"] > button {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(52,211,153,0.06);
-    border: 1px solid rgba(52,211,153,0.25);
+    background: var(--green-50);
+    border: 1px solid rgba(16,185,129,0.3);
     border-radius: 8px;
     padding: 0.6rem 1rem;
     font-size: 0.82rem;
-    color: var(--green-400);
+    color: var(--green-600);
     margin-top: 0.6rem;
     animation: fadeIn 0.3s both;
 }
 
 div[data-testid="stAlert"] {
     border-radius: var(--r-md) !important;
-    background: rgba(232,184,75,0.06) !important;
-    border: 1px solid rgba(232,184,75,0.25) !important;
+    background: var(--gold-100) !important;
+    border: 1px solid rgba(232,168,0,0.3) !important;
     border-left: none !important;
     border-right: 3px solid var(--gold-400) !important;
+    color: var(--ink-700) !important;
 }
 
-div[data-testid="stSpinner"] p { color: var(--slate-400) !important; font-size: 0.85rem !important; }
+div[data-testid="stSpinner"] p { color: var(--ink-300) !important; font-size: 0.85rem !important; }
 
-section[data-testid="stSidebar"] { background: var(--navy-800) !important; }
+section[data-testid="stSidebar"] { background: var(--bg-soft) !important; }
 
 /* Scroll reveal utility */
 .reveal { animation: fadeIn 0.5s both; }
@@ -632,14 +645,14 @@ if st.session_state.gps_active:
     gps_css = """
     <style>
     div[data-testid="stButton"] > button {
-        background: rgba(52,211,153,0.1) !important;
-        border: 1px solid rgba(52,211,153,0.5) !important;
-        color: #34d399 !important;
-        box-shadow: 0 0 20px rgba(52,211,153,0.15) !important;
+        background: #ecfdf5 !important;
+        border: 1px solid rgba(5,150,105,0.4) !important;
+        color: #059669 !important;
+        box-shadow: 0 2px 10px rgba(5,150,105,0.12) !important;
     }
     div[data-testid="stButton"] > button:hover {
-        background: rgba(52,211,153,0.18) !important;
-        box-shadow: 0 4px 24px rgba(52,211,153,0.3) !important;
+        background: #d1fae5 !important;
+        box-shadow: 0 4px 16px rgba(5,150,105,0.2) !important;
         transform: translateY(-2px) !important;
     }
     </style>
@@ -648,13 +661,14 @@ else:
     gps_css = """
     <style>
     div[data-testid="stButton"] > button {
-        background: rgba(100,116,139,0.12) !important;
-        border: 1px solid rgba(100,116,139,0.35) !important;
-        color: #94a3b8 !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #64748b !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
     }
     div[data-testid="stButton"] > button:hover {
-        background: rgba(100,116,139,0.22) !important;
-        border-color: rgba(148,163,184,0.5) !important;
+        background: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
         transform: translateY(-2px) !important;
     }
     </style>
@@ -825,10 +839,6 @@ st.markdown("""
 <div class="hero">
     <div class="hero-glow"></div>
     <div class="hero-line-top"></div>
-    <div class="hero-badge">
-        <span class="dot"></span>
-        نظام ذكي &nbsp;·&nbsp; إصدار 2.1
-    </div>
     <h1 class="hero-title">الاستعلام عن <em>الحيز العمراني</em></h1>
     <p class="hero-sub">
         تحقق فوري من موقع أي قطعة أرض أو مبنى داخل أو خارج النطاق العمراني المعتمد
@@ -845,11 +855,11 @@ st.markdown("""
         <div class="stat-label">نطاق عمراني معتمد</div>
     </div>
     <div class="stat-chip">
-        <div class="stat-val" style="font-size:1.2rem">GPS</div>
+        <div class="stat-val" style="font-size:1.2rem;color:var(--green-600)">GPS</div>
         <div class="stat-label">تحديد تلقائي بالموقع</div>
     </div>
     <div class="stat-chip">
-        <div class="stat-val" style="font-size:1.2rem;color:var(--teal-400)">DMS</div>
+        <div class="stat-val" style="font-size:1.2rem;color:var(--teal-500)">DMS</div>
         <div class="stat-label">دعم صيغ متعددة</div>
     </div>
 </div>
