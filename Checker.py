@@ -19,6 +19,7 @@ st.set_page_config(
 if "gps_active"      not in st.session_state: st.session_state.gps_active      = False
 if "coord_input"     not in st.session_state: st.session_state.coord_input      = ""
 if "last_gps_coords" not in st.session_state: st.session_state.last_gps_coords  = ""
+if "last_click"      not in st.session_state: st.session_state.last_click       = ""
 
 def toggle_gps():
     st.session_state.gps_active = not st.session_state.gps_active
@@ -472,6 +473,64 @@ div[data-testid="stButton"] > button {
 .ph-title { font-size:.95rem; font-weight:700; color:var(--ink-200); margin-bottom:.4rem; }
 .ph-desc  { font-size:.78rem; color:var(--ink-100); line-height:1.75; }
 
+/* ── CLICK MAP CARD ──────────────────────────────────────── */
+.click-map-card {
+    background   : var(--white);
+    border       : 1px solid var(--ink-100);
+    border-radius: var(--r-lg);
+    overflow     : hidden;
+    box-shadow   : var(--s-sm);
+    margin-bottom: 1.2rem;
+    animation    : fadeUp .5s .1s ease both;
+}
+.click-map-head {
+    display        : flex;
+    align-items    : center;
+    justify-content: space-between;
+    padding        : .75rem 1.1rem;
+    border-bottom  : 1px solid var(--ink-100);
+    background     : var(--surface);
+}
+.click-map-title {
+    font-size  : .82rem;
+    font-weight: 700;
+    color      : var(--ink-700);
+    display    : flex;
+    align-items: center;
+    gap        : 7px;
+}
+.click-map-hint {
+    font-size  : .7rem;
+    color      : var(--ink-200);
+    font-weight: 600;
+}
+.click-coords-bar {
+    display    : flex;
+    align-items: center;
+    gap        : .75rem;
+    padding    : .6rem 1.1rem;
+    background : var(--gold-lite);
+    border-top : 1px solid var(--gold-bdr);
+}
+.click-coords-bar .coords-dot { background: var(--gold-mid); }
+.click-coords-bar .coords-lbl { color: var(--gold); }
+.click-coords-bar .coords-val { color: var(--gold); font-size:.83rem; }
+.click-apply-btn {
+    margin-right : auto;
+    background   : var(--ink-900);
+    color        : #fff;
+    border       : none;
+    border-radius: 6px;
+    padding      : .35rem .85rem;
+    font-size    : .75rem;
+    font-weight  : 700;
+    font-family  : 'Cairo', sans-serif;
+    cursor       : pointer;
+    white-space  : nowrap;
+    transition   : background .2s;
+}
+.click-apply-btn:hover { background: var(--ink-700); }
+
 /* ── ALERTS ───────────────────────────────────────────────── */
 div[data-testid="stAlert"] {
     border-radius: var(--r-sm) !important;
@@ -774,6 +833,49 @@ def parse_coords(text: str):
     return parse_dms(text)
 
 
+def build_click_map():
+    """خريطة النقر — تعرض الحدود وتستقبل نقرة المستخدم"""
+    center_lat = (30.725045 + 30.737856) / 2
+    center_lon = (31.282097 + 31.304903) / 2
+
+    m = folium.Map(
+        location=[center_lat, center_lon],
+        zoom_start=15,
+        prefer_canvas=True,
+        control_scale=True,
+        tiles=None,
+    )
+
+    folium.TileLayer(
+        tiles="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+        attr="Google Satellite",
+        name="🛰️ أقمار صناعية",
+    ).add_to(m)
+    folium.TileLayer(
+        tiles="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+        attr="Google Maps",
+        name="🗺️ خريطة الشوارع",
+    ).add_to(m)
+
+    # رسم الحدود
+    poly_style = dict(
+        color="#d97706", weight=2.2,
+        fillColor="#d97706", fillOpacity=0.07,
+        dashArray="7 4",
+    )
+    folium.Polygon(
+        locations=BOUNDARY_POINTS_1, **poly_style,
+        tooltip="<b style='font-family:Cairo'>المنطقة الأولى</b>",
+    ).add_to(m)
+    folium.Polygon(
+        locations=BOUNDARY_POINTS_2, **poly_style,
+        tooltip="<b style='font-family:Cairo'>المنطقة الثانية</b>",
+    ).add_to(m)
+
+    folium.LayerControl(collapsed=False).add_to(m)
+    return m
+
+
 @st.cache_data(show_spinner=False)
 def build_map(lat: float, lon: float, is_inside: bool):
     """بناء خريطة Folium مع طبقات Google"""
@@ -886,7 +988,7 @@ col_side, col_main = st.columns([1, 2.5], gap="medium")
 # ════════════════════════════
 with col_side:
 
-    # بطاقة GPS
+    # ── بطاقة GPS ──
     st.markdown("""
     <div class="card">
         <div class="card-head">
@@ -923,15 +1025,15 @@ with col_side:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # الفاصل
-    st.markdown('<div class="or-div">أو أدخل يدوياً</div>', unsafe_allow_html=True)
+    # ── فاصل ──
+    st.markdown('<div class="or-div">أو انقر على الخريطة</div>', unsafe_allow_html=True)
 
-    # بطاقة الإدخال اليدوي
+    # ── بطاقة الإدخال اليدوي ──
     st.markdown("""
     <div class="card">
         <div class="card-head">
             <span class="card-icon">✏️</span>
-            <span class="card-title">إدخال الإحداثيات</span>
+            <span class="card-title">الإحداثيات</span>
         </div>
     """, unsafe_allow_html=True)
 
@@ -947,42 +1049,84 @@ with col_side:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # تلميح
     st.markdown(
-        '<div class="tip">💡 انسخ الإحداثيات مباشرةً من خرائط جوجل ولصقها هنا</div>',
+        '<div class="tip">💡 انقر على الخريطة أو أدخل الإحداثيات يدوياً</div>',
         unsafe_allow_html=True,
     )
 
 
 # ═════════════════════════════
-#  العمود الأيمن — النتيجة
+#  العمود الأيمن
 # ═════════════════════════════
 with col_main:
 
+    # ══════════════════════════════════════════
+    #  خريطة النقر — دائماً ظاهرة في الأعلى
+    # ══════════════════════════════════════════
+    st.markdown("""
+    <div class="click-map-card">
+        <div class="click-map-head">
+            <span class="click-map-title">🖱️ انقر لتحديد موقع قطعة الأرض</span>
+            <span class="click-map-hint">النقر يملأ الإحداثيات تلقائياً</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    click_map   = build_click_map()
+    map_result  = st_folium(
+        click_map,
+        width="100%",
+        height=340,
+        returned_objects=["last_clicked"],
+        key="click_map",
+    )
+
+    # ── معالجة النقرة ──
+    clicked = map_result.get("last_clicked") if map_result else None
+    if clicked and clicked.get("lat") and clicked.get("lng"):
+        clat = clicked["lat"]
+        clng = clicked["lng"]
+        new_click = f"{clat:.6f}, {clng:.6f}"
+        if st.session_state.get("last_click") != new_click:
+            st.session_state.last_click  = new_click
+            st.session_state.coord_input = new_click
+            st.rerun()
+
+    # ── شريط الإحداثيات المنقور عليها ──
+    if st.session_state.coord_input:
+        st.markdown(f"""
+        <div class="click-coords-bar">
+            <span class="coords-dot"></span>
+            <div>
+                <div class="coords-lbl">الموقع المحدد</div>
+                <div class="coords-val">{st.session_state.coord_input}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ══════════════════════════════════════════
+    #  نتيجة الفحص
+    # ══════════════════════════════════════════
     if submitted:
         if not user_input.strip():
             st.warning("الرجاء إدخال الإحداثيات أولاً قبل الفحص.")
         else:
             parsed = parse_coords(user_input)
             if parsed:
-                lat, lon   = parsed
-                pt         = Point(lon, lat)
-                is_inside  = polygon1.contains(pt) or polygon2.contains(pt)
+                lat, lon  = parsed
+                pt        = Point(lon, lat)
+                is_inside = polygon1.contains(pt) or polygon2.contains(pt)
 
-                # ── لوحة النتيجة ──
-                st.markdown('<div class="result-panel">', unsafe_allow_html=True)
+                # ── بطاقة النتيجة ──
+                st.markdown('<div class="result-panel" style="margin-top:1rem">', unsafe_allow_html=True)
 
                 if is_inside:
                     st.markdown("""
                     <div class="res-bar res-bar-in">
                         <span class="res-emoji">✅</span>
                         <div>
-                            <div class="res-title res-title-in">
-                                الموقع داخل الحيز العمراني المعتمد
-                            </div>
-                            <div class="res-desc">
-                                ضمن النطاق الرسمي المعتمد للتخطيط العمراني
-                            </div>
+                            <div class="res-title res-title-in">الموقع داخل الحيز العمراني المعتمد</div>
+                            <div class="res-desc">ضمن النطاق الرسمي المعتمد للتخطيط العمراني</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -991,17 +1135,12 @@ with col_main:
                     <div class="res-bar res-bar-out">
                         <span class="res-emoji">⛔</span>
                         <div>
-                            <div class="res-title res-title-out">
-                                الموقع خارج الحيز العمراني
-                            </div>
-                            <div class="res-desc">
-                                خارج النطاق العمراني الرسمي المعتمد حالياً
-                            </div>
+                            <div class="res-title res-title-out">الموقع خارج الحيز العمراني</div>
+                            <div class="res-desc">خارج النطاق العمراني الرسمي المعتمد حالياً</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
 
-                # ── سطر الإحداثيات ──
                 st.markdown(f"""
                 <div class="coords-row">
                     <span class="coords-dot"></span>
@@ -1010,37 +1149,20 @@ with col_main:
                         <div class="coords-val">{lat:.6f} &nbsp;,&nbsp; {lon:.6f}</div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
-
-                # ── رأس الخريطة ──
-                st.markdown("""
                 <div class="map-head">
-                    <span class="map-head-title">🗺️ الخريطة التفاعلية</span>
+                    <span class="map-head-title">🗺️ نتيجة على الخريطة</span>
                     <span class="map-live-badge">● مباشر</span>
                 </div>
                 """, unsafe_allow_html=True)
 
                 st.markdown("</div>", unsafe_allow_html=True)
 
-                # ── الخريطة ──
                 with st.spinner("جارٍ تحميل الخريطة…"):
                     folium_map = build_map(lat, lon, is_inside)
-                    st_folium(folium_map, width="100%", height=465, returned_objects=[])
+                    st_folium(folium_map, width="100%", height=400,
+                              returned_objects=[], key="result_map")
 
             else:
                 st.error(
                     "صيغة الإحداثيات غير صحيحة. يرجى إدخالها بالشكل: **30.727313, 31.284638**"
                 )
-
-    else:
-        # ── حالة الانتظار ──
-        st.markdown("""
-        <div class="placeholder">
-            <div class="ph-icon">🗺️</div>
-            <div class="ph-title">الخريطة التفاعلية</div>
-            <div class="ph-desc">
-                أدخل إحداثيات الموقع أو فعّل GPS<br>
-                ثم اضغط «بدء الفحص» لعرض النتيجة
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
