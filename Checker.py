@@ -15,7 +15,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── حالة الجلسة ──────────────────────────────────────────────────
 if "gps_active"      not in st.session_state: st.session_state.gps_active      = False
 if "coord_input"     not in st.session_state: st.session_state.coord_input      = ""
 if "last_gps_coords" not in st.session_state: st.session_state.last_gps_coords  = ""
@@ -31,14 +30,10 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
 
-/* ── TOKEN LAYER ─────────────────────────────────────────── */
 :root {
-    /* Surfaces */
     --page      : #f4f6f9;
     --white     : #ffffff;
     --surface   : #f8fafc;
-
-    /* Ink scale */
     --ink-900   : #0f172a;
     --ink-700   : #1e293b;
     --ink-500   : #334155;
@@ -47,37 +42,26 @@ st.markdown("""
     --ink-200   : #94a3b8;
     --ink-100   : #e2e8f0;
     --ink-50    : #f1f5f9;
-
-    /* Brand — warm gold */
     --gold      : #b45309;
     --gold-mid  : #d97706;
     --gold-lite : #fef3c7;
     --gold-bdr  : #fde68a;
-
-    /* Semantic — green (inside) */
     --green     : #065f46;
     --green-mid : #059669;
     --green-lite: #ecfdf5;
     --green-bdr : #6ee7b7;
-
-    /* Semantic — red (outside) */
     --red       : #991b1b;
     --red-mid   : #dc2626;
     --red-lite  : #fef2f2;
     --red-bdr   : #fca5a5;
-
-    /* Radii */
     --r-sm  : 8px;
     --r-md  : 12px;
     --r-lg  : 18px;
-
-    /* Shadows */
     --s-xs  : 0 1px 3px rgba(0,0,0,.05);
     --s-sm  : 0 2px 10px rgba(0,0,0,.07);
     --s-md  : 0 6px 24px rgba(0,0,0,.09);
 }
 
-/* ── RESET ────────────────────────────────────────────────── */
 *, *::before, *::after {
     box-sizing : border-box;
     font-family: 'Cairo', sans-serif !important;
@@ -91,7 +75,6 @@ html, body, .stApp {
     min-height: 100vh;
 }
 
-/* إخفاء عناصر Streamlit الافتراضية */
 #MainMenu, footer, header,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
@@ -99,7 +82,7 @@ html, body, .stApp {
 
 section[data-testid="stSidebar"] { background: var(--white) !important; }
 
-/* ── KEYFRAMES ────────────────────────────────────────────── */
+/* ── KEYFRAMES ── */
 @keyframes fadeUp {
     from { opacity:0; transform:translateY(16px); }
     to   { opacity:1; transform:translateY(0);    }
@@ -125,7 +108,7 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     50%     { opacity:1;  transform:scaleX(1);   }
 }
 
-/* ── TOPBAR ───────────────────────────────────────────────── */
+/* ── TOPBAR ── */
 .topbar {
     display        : flex;
     align-items    : center;
@@ -151,18 +134,18 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     font-size      : 18px;
     flex-shrink    : 0;
 }
-.brand-name    { font-size:.95rem; font-weight:700; color:var(--ink-900); line-height:1.2; }
-.brand-sub     { font-size:.7rem;  font-weight:400; color:var(--ink-300); }
+.brand-name { font-size:.95rem; font-weight:700; color:var(--ink-900); line-height:1.2; }
+.brand-sub  { font-size:.7rem;  font-weight:400; color:var(--ink-300); }
 .live-pill {
-    display    : flex;
-    align-items: center;
-    gap        : 6px;
-    font-size  : .7rem;
-    font-weight: 700;
-    color      : var(--green-mid);
-    background : var(--green-lite);
-    border     : 1px solid var(--green-bdr);
-    padding    : 5px 13px;
+    display      : flex;
+    align-items  : center;
+    gap          : 6px;
+    font-size    : .7rem;
+    font-weight  : 700;
+    color        : var(--green-mid);
+    background   : var(--green-lite);
+    border       : 1px solid var(--green-bdr);
+    padding      : 5px 13px;
     border-radius: 50px;
     letter-spacing: .04em;
 }
@@ -174,7 +157,7 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     animation    : blink 2s ease-in-out infinite;
 }
 
-/* ── HERO ─────────────────────────────────────────────────── */
+/* ── HERO ── */
 .hero {
     position     : relative;
     overflow     : hidden;
@@ -187,7 +170,6 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     box-shadow   : var(--s-sm);
     animation    : fadeUp .5s .05s ease both;
 }
-/* الخط الذهبي العلوي */
 .hero::before {
     content   : '';
     position  : absolute;
@@ -221,7 +203,7 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     margin    : 0 auto;
 }
 
-/* ── CARD ─────────────────────────────────────────────────── */
+/* ── CARD ── */
 .card {
     background   : var(--white);
     border       : 1px solid var(--ink-100);
@@ -257,7 +239,7 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
 .card-title { font-size:.83rem; font-weight:700; color:var(--ink-700); }
 .card-hint  { font-size:.78rem; color:var(--ink-300); line-height:1.65; margin:0 0 .75rem; }
 
-/* ── OR DIVIDER ───────────────────────────────────────────── */
+/* ── OR DIVIDER ── */
 .or-div {
     display    : flex;
     align-items: center;
@@ -270,7 +252,7 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
 }
 .or-div::before,.or-div::after { content:''; flex:1; height:1px; background:var(--ink-100); }
 
-/* ── GPS SUCCESS MESSAGE ──────────────────────────────────── */
+/* ── GPS SUCCESS ── */
 .gps-ok {
     display    : flex;
     align-items: center;
@@ -286,7 +268,7 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     animation  : fadeUp .3s ease both;
 }
 
-/* ── TIP ──────────────────────────────────────────────────── */
+/* ── TIP ── */
 .tip {
     padding      : .6rem .85rem;
     background   : var(--gold-lite);
@@ -299,7 +281,7 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     margin-top   : .75rem;
 }
 
-/* ── STREAMLIT INPUTS ─────────────────────────────────────── */
+/* ── STREAMLIT INPUTS ── */
 div[data-testid="stTextInput"] input {
     background   : var(--surface) !important;
     border       : 1px solid var(--ink-100) !important;
@@ -328,7 +310,7 @@ div[data-testid="stTextInput"] label {
     text-transform: uppercase !important;
 }
 
-/* ── SUBMIT BUTTON ────────────────────────────────────────── */
+/* ── SUBMIT BUTTON ── */
 div[data-testid="stFormSubmitButton"] > button {
     background   : var(--ink-900) !important;
     border       : none !important;
@@ -349,7 +331,7 @@ div[data-testid="stFormSubmitButton"] > button:hover {
 }
 div[data-testid="stFormSubmitButton"] > button:active { transform:translateY(0) !important; }
 
-/* ── GPS TOGGLE BUTTON ────────────────────────────────────── */
+/* ── GPS BUTTON ── */
 div[data-testid="stButton"] > button {
     border-radius: var(--r-sm) !important;
     font-weight  : 700 !important;
@@ -359,7 +341,7 @@ div[data-testid="stButton"] > button {
     transition   : all .2s ease !important;
 }
 
-/* ── RESULT PANEL ─────────────────────────────────────────── */
+/* ── RESULT PANEL ── */
 .result-panel {
     background   : var(--white);
     border       : 1px solid var(--ink-100);
@@ -368,8 +350,6 @@ div[data-testid="stButton"] > button {
     box-shadow   : var(--s-sm);
     animation    : fadeUp .4s ease both;
 }
-
-/* شريط النتيجة */
 .res-bar {
     display    : flex;
     align-items: center;
@@ -378,18 +358,17 @@ div[data-testid="stButton"] > button {
 }
 .res-bar-in  { background:var(--green-lite); border-bottom:1px solid var(--green-bdr); }
 .res-bar-out { background:var(--red-lite);   border-bottom:1px solid var(--red-bdr);   }
-
 .res-emoji {
     font-size  : 2rem;
     flex-shrink: 0;
     animation  : popIn .45s .1s cubic-bezier(.34,1.56,.64,1) both;
 }
-.res-title       { font-size:1rem;  font-weight:800; line-height:1.3; }
-.res-title-in    { color:var(--green); }
-.res-title-out   { color:var(--red);   }
-.res-desc        { font-size:.76rem; color:var(--ink-300); margin-top:.2rem; }
+.res-title     { font-size:1rem;  font-weight:800; line-height:1.3; }
+.res-title-in  { color:var(--green); }
+.res-title-out { color:var(--red);   }
+.res-desc      { font-size:.76rem; color:var(--ink-300); margin-top:.2rem; }
 
-/* سطر الإحداثيات */
+/* ── COORDS ROW ── */
 .coords-row {
     display     : flex;
     align-items : center;
@@ -415,15 +394,15 @@ div[data-testid="stButton"] > button {
     margin-bottom : .2rem;
 }
 .coords-val {
-    font-size         : .9rem;
-    font-weight       : 700;
-    color             : var(--ink-700);
-    direction         : ltr;
-    text-align        : left;
+    font-size           : .9rem;
+    font-weight         : 700;
+    color               : var(--ink-700);
+    direction           : ltr;
+    text-align          : left;
     font-variant-numeric: tabular-nums;
 }
 
-/* رأس الخريطة */
+/* ── MAP HEAD ── */
 .map-head {
     display        : flex;
     align-items    : center;
@@ -431,11 +410,7 @@ div[data-testid="stButton"] > button {
     padding        : .7rem 1.5rem;
     border-bottom  : 1px solid var(--ink-100);
 }
-.map-head-title {
-    font-size  : .8rem;
-    font-weight: 700;
-    color      : var(--ink-500);
-}
+.map-head-title  { font-size:.8rem; font-weight:700; color:var(--ink-500); }
 .map-live-badge {
     font-size    : .65rem;
     font-weight  : 700;
@@ -448,31 +423,31 @@ div[data-testid="stButton"] > button {
     animation    : blink 2s ease-in-out infinite;
 }
 
-/* ── EMPTY / PLACEHOLDER ──────────────────────────────────── */
+/* ── PLACEHOLDER ── */
 .placeholder {
-    background   : var(--white);
-    border       : 2px dashed var(--ink-100);
-    border-radius: var(--r-lg);
-    height       : 520px;
-    display      : flex;
+    background    : var(--white);
+    border        : 2px dashed var(--ink-100);
+    border-radius : var(--r-lg);
+    height        : 520px;
+    display       : flex;
     flex-direction: column;
-    align-items  : center;
+    align-items   : center;
     justify-content: center;
-    text-align   : center;
-    transition   : border-color .3s;
-    animation    : fadeUp .5s .15s ease both;
+    text-align    : center;
+    transition    : border-color .3s;
+    animation     : fadeUp .5s .15s ease both;
 }
 .placeholder:hover { border-color:var(--gold-bdr); }
 .ph-icon  {
-    font-size  : 3.5rem;
-    opacity    : .16;
+    font-size    : 3.5rem;
+    opacity      : .16;
     margin-bottom: .85rem;
-    animation  : float 4s ease-in-out infinite;
+    animation    : float 4s ease-in-out infinite;
 }
 .ph-title { font-size:.95rem; font-weight:700; color:var(--ink-200); margin-bottom:.4rem; }
 .ph-desc  { font-size:.78rem; color:var(--ink-100); line-height:1.75; }
 
-/* ── ALERTS ───────────────────────────────────────────────── */
+/* ── ALERTS ── */
 div[data-testid="stAlert"] {
     border-radius: var(--r-sm) !important;
     background   : var(--gold-lite) !important;
@@ -488,7 +463,7 @@ div[data-testid="stSpinner"] p {
 </style>
 """, unsafe_allow_html=True)
 
-# ── زر GPS — تلوين ديناميكي ──────────────────────────────────────
+# ── زر GPS ديناميكي ──
 if st.session_state.gps_active:
     st.markdown("""<style>
     div[data-testid="stButton"]>button {
@@ -519,66 +494,220 @@ else:
 
 
 # ══════════════════════════════════════════════════════════════════
-# 3.  بيانات الحدود
+# 3.  بيانات الحدود — محوّلة من المصدر الأصلي DMS
+#     تصحيحات: نقطة 109 محذوفة (شاذة) | 148 و153 مصحّحتا خط الطول
 # ══════════════════════════════════════════════════════════════════
 BOUNDARY_POINTS_1 = [
-    (30.722009, 31.295623), (30.721122, 31.295481),
-    (30.721285, 31.294259), (30.722031, 31.294366),
+    (30.722009, 31.295623),
+    (30.721122, 31.295481),
+    (30.721285, 31.294259),
+    (30.722031, 31.294366),
     (30.722009, 31.295623),
 ]
 
 BOUNDARY_POINTS_2 = [
-    (30.725045, 31.294755), (30.730050, 31.302733), (30.730125, 31.302278), (30.729349, 31.302003),
-    (30.729198, 31.302683), (30.729641, 31.302797), (30.729435, 31.303796), (30.727487, 31.303334),
-    (30.727292, 31.304539), (30.726293, 31.304657), (30.726367, 31.304013), (30.725509, 31.303733),
-    (30.725668, 31.303050), (30.725328, 31.302976), (30.725102, 31.302035), (30.724626, 31.301933),
-    (30.724686, 31.300365), (30.723999, 31.300409), (30.724035, 31.299283), (30.724191, 31.299282),
-    (30.724183, 31.299604), (30.724561, 31.299566), (30.724542, 31.298039), (30.724166, 31.298057),
-    (30.724177, 31.298978), (30.723874, 31.298982), (30.723883, 31.298796), (30.723563, 31.298763),
-    (30.723571, 31.299340), (30.723351, 31.299368), (30.723354, 31.299624), (30.723106, 31.299629),
-    (30.723083, 31.299289), (30.722603, 31.299287), (30.722602, 31.299040), (30.722476, 31.298887),
-    (30.722474, 31.298885), (30.723228, 31.298330), (30.723236, 31.298163), (30.723105, 31.298165),
-    (30.723102, 31.297909), (30.722863, 31.297913), (30.722820, 31.298446), (30.722298, 31.298443),
-    (30.722293, 31.296397), (30.724224, 31.296490), (30.724249, 31.295636), (30.723865, 31.295652),
-    (30.723869, 31.295506), (30.723698, 31.295505), (30.723700, 31.295325), (30.723546, 31.295320),
-    (30.723553, 31.295189), (30.723513, 31.295189), (30.723424, 31.295068), (30.723430, 31.294069),
-    (30.722907, 31.294052), (30.722870, 31.295608), (30.722565, 31.295599), (30.722601, 31.295016),
-    (30.722308, 31.294998), (30.722413, 31.293531), (30.722103, 31.293463), (30.722123, 31.293295),
-    (30.722468, 31.293347), (30.722546, 31.292812), (30.722917, 31.292887), (30.722943, 31.292311),
-    (30.722508, 31.292233), (30.722609, 31.291585), (30.722487, 31.291574), (30.722551, 31.291134),
-    (30.722271, 31.290978), (30.722376, 31.290487), (30.723197, 31.290470), (30.723447, 31.289850),
-    (30.722869, 31.289696), (30.722908, 31.289504), (30.723129, 31.289564), (30.723334, 31.288885),
-    (30.722683, 31.288752), (30.722639, 31.288950), (30.722493, 31.288907), (30.722508, 31.288817),
-    (30.722267, 31.288766), (30.722300, 31.288589), (30.721931, 31.288531), (30.721987, 31.288171),
-    (30.722862, 31.287790), (30.722983, 31.287686), (30.723240, 31.287739), (30.723145, 31.287891),
-    (30.724054, 31.288657), (30.724014, 31.288809), (30.723727, 31.288738), (30.723584, 31.289331),
-    (30.723976, 31.289488), (30.724065, 31.289078), (30.724422, 31.289217), (30.724606, 31.287618),
-    (30.725379, 31.287741), (30.725432, 31.287241), (30.726149, 31.287339), (30.726072, 31.286229),
-    (30.726688, 31.288502), (30.726883, 31.286281), (30.726529, 31.286324), (30.726393, 31.285772),
-    (30.726885, 31.285764), (30.726763, 31.285263), (30.725981, 31.285181), (30.726013, 31.284693),
-    (30.726629, 31.284729), (30.726296, 31.283332), (30.727404, 31.283527), (30.727628, 31.282346),
-    (30.727934, 31.282098), (30.727906, 31.282351), (30.728364, 31.282331), (30.728379, 31.282563),
-    (30.728533, 31.282559), (30.728550, 31.282847), (30.728771, 31.282858), (30.728783, 31.283372),
-    (30.728867, 31.283370), (30.728894, 31.283940), (30.729369, 31.283918), (30.729388, 31.284299),
-    (30.729571, 31.284288), (30.729904, 31.285527), (30.730149, 31.285504), (30.730166, 31.285871),
-    (30.730870, 31.285854), (30.730911, 31.286129), (30.731057, 31.286175), (30.731075, 31.286738),
-    (30.731296, 31.286725), (30.731301, 31.286861), (30.731551, 31.286875), (30.731618, 31.286145),
-    (30.732257, 31.286211), (30.732213, 31.286628), (30.732463, 31.286675), (30.733320, 31.287117),
-    (30.733914, 31.287269), (30.733991, 31.286705), (30.734372, 31.286789), (30.734334, 31.287032),
-    (30.735238, 31.287192), (30.735163, 31.287714), (30.735515, 31.287807), (30.735485, 31.287994),
-    (30.735682, 31.288038), (30.736004, 31.288855), (30.735767, 31.288963), (30.736112, 31.290061),
-    (30.736201, 31.290607), (30.736611, 31.290530), (30.736718, 31.292075), (30.737504, 31.292097),
-    (30.737359, 31.293014), (30.737856, 31.293283), (30.737787, 31.294242), (30.737386, 31.294167),
-    (30.736955, 31.295531), (30.736568, 31.295382), (30.736186, 31.296724), (30.735956, 31.296656),
-    (30.735666, 31.297535), (30.735786, 31.297608), (30.735754, 31.297701), (30.736233, 31.297994),
-    (30.735298, 31.300357), (30.735131, 31.300549), (30.735560, 31.300958), (30.735970, 31.301115),
-    (30.735685, 31.302161), (30.735944, 31.302214), (30.735818, 31.302683), (30.735475, 31.301738),
-    (30.734499, 31.301261), (30.734008, 31.302902), (30.734462, 31.303135), (30.734278, 31.303673),
-    (30.734143, 31.303502), (30.734085, 31.303215), (30.733325, 31.302837), (30.733228, 31.303085),
-    (30.733124, 31.303040), (30.732857, 31.304064), (30.732406, 31.303793), (30.732351, 31.304903),
-    (30.731808, 31.304799), (30.731905, 31.304481), (30.730897, 31.304118), (30.730894, 31.304281),
-    (30.731161, 31.304519), (30.731154, 31.303862), (30.730056, 31.303467), (30.730106, 31.303235),
-    (30.729515, 31.303288), (30.725045, 31.294755),
+    (30.730267, 31.302811),  # 5
+    (30.730050, 31.302729),  # 6
+    (30.730125, 31.302278),  # 7
+    (30.729349, 31.302003),  # 8
+    (30.729197, 31.302682),  # 9
+    (30.730196, 31.302797),  # 10
+    (30.729435, 31.303796),  # 11
+    (30.727487, 31.303334),  # 12
+    (30.727292, 31.304539),  # 13
+    (30.726292, 31.304379),  # 14
+    (30.726367, 31.304013),  # 15
+    (30.725509, 31.303729),  # 16
+    (30.725668, 31.303050),  # 17
+    (30.725328, 31.302976),  # 18
+    (30.725102, 31.302035),  # 19
+    (30.724626, 31.301933),  # 20
+    (30.724686, 31.300365),  # 21
+    (30.723999, 31.300409),  # 22
+    (30.724035, 31.299283),  # 23
+    (30.724191, 31.299282),  # 24
+    (30.724183, 31.299604),  # 25
+    (30.724561, 31.299566),  # 26
+    (30.724542, 31.298039),  # 27
+    (30.724166, 31.298057),  # 28
+    (30.724177, 31.298978),  # 29
+    (30.723874, 31.298982),  # 30
+    (30.723883, 31.298796),  # 31
+    (30.723562, 31.298763),  # 32
+    (30.723571, 31.299340),  # 33
+    (30.723351, 31.299368),  # 34
+    (30.723354, 31.299624),  # 35
+    (30.723106, 31.299634),  # 36
+    (30.723082, 31.299289),  # 37
+    (30.722603, 31.299287),  # 38
+    (30.722602, 31.299040),  # 39
+    (30.722476, 31.299037),  # 40
+    (30.722474, 31.298887),  # 41
+    (30.723227, 31.298853),  # 42
+    (30.723236, 31.298163),  # 43
+    (30.723105, 31.298165),  # 44
+    (30.723102, 31.297909),  # 45
+    (30.722863, 31.297913),  # 46
+    (30.722822, 31.298446),  # 47
+    (30.722298, 31.298443),  # 48
+    (30.722293, 31.296397),  # 49
+    (30.724224, 31.296495),  # 50
+    (30.724249, 31.295636),  # 51
+    (30.723865, 31.295652),  # 52
+    (30.723869, 31.295506),  # 53
+    (30.723698, 31.295505),  # 54
+    (30.723699, 31.295325),  # 55
+    (30.723546, 31.295320),  # 56
+    (30.723553, 31.295188),  # 57
+    (30.723513, 31.295189),  # 58
+    (30.723424, 31.295179),  # 59
+    (30.723430, 31.295069),  # 60
+    (30.722906, 31.295054),  # 61
+    (30.722870, 31.295608),  # 62
+    (30.722565, 31.295599),  # 63
+    (30.722602, 31.295016),  # 64
+    (30.722307, 31.294998),  # 65
+    (30.722469, 31.293531),  # 66
+    (30.722102, 31.293463),  # 67
+    (30.722123, 31.293295),  # 68
+    (30.722468, 31.293347),  # 69
+    (30.722552, 31.292812),  # 70
+    (30.722917, 31.292887),  # 71
+    (30.722943, 31.292311),  # 72
+    (30.722508, 31.292233),  # 73
+    (30.722609, 31.291591),  # 74
+    (30.722487, 31.291579),  # 75
+    (30.722551, 31.291140),  # 76
+    (30.722271, 31.290983),  # 77
+    (30.722376, 31.290487),  # 78
+    (30.723197, 31.290748),  # 79
+    (30.723447, 31.289850),  # 80
+    (30.722869, 31.289696),  # 81
+    (30.722908, 31.289504),  # 82
+    (30.723129, 31.289564),  # 83
+    (30.723334, 31.288885),  # 84
+    (30.722682, 31.288752),  # 85
+    (30.722639, 31.288950),  # 86
+    (30.722492, 31.288907),  # 87
+    (30.722507, 31.288817),  # 88
+    (30.722267, 31.288766),  # 89
+    (30.722300, 31.288589),  # 90
+    (30.721931, 31.288531),  # 91
+    (30.721987, 31.288171),  # 92
+    (30.722862, 31.288346),  # 93
+    (30.722982, 31.287972),  # 94
+    (30.723240, 31.287739),  # 95
+    (30.723145, 31.287891),  # 96
+    (30.724054, 31.288663),  # 97
+    (30.724014, 31.288809),  # 98
+    (30.723727, 31.288738),  # 99
+    (30.723584, 31.289331),  # 100
+    (30.723976, 31.289488),  # 101
+    (30.724065, 31.289133),  # 102
+    (30.724422, 31.289217),  # 103
+    (30.724606, 31.287618),  # 104
+    (30.725379, 31.287741),  # 105
+    (30.725432, 31.287241),  # 106
+    (30.726149, 31.287339),  # 107
+    (30.726072, 31.286229),  # 108
+    # 109 محذوفة — شاذة مؤكدة (30.726688, 31.288502)
+    (30.726882, 31.286281),  # 110
+    (30.726529, 31.286324),  # 111
+    (30.726393, 31.285772),  # 112
+    (30.726885, 31.285764),  # 113
+    (30.726763, 31.285263),  # 114
+    (30.725981, 31.285181),  # 115
+    (30.726013, 31.284693),  # 116
+    (30.726629, 31.284729),  # 117
+    (30.726296, 31.283333),  # 118
+    (30.727404, 31.283527),  # 119
+    (30.727628, 31.282346),  # 120
+    (30.727934, 31.282097),  # 121
+    (30.727906, 31.282351),  # 122
+    (30.728364, 31.282331),  # 123
+    (30.728379, 31.282563),  # 124
+    (30.728533, 31.282559),  # 125
+    (30.728549, 31.282847),  # 126
+    (30.728771, 31.282858),  # 127
+    (30.728783, 31.283372),  # 128
+    (30.728867, 31.283370),  # 129
+    (30.728894, 31.283940),  # 130
+    (30.729369, 31.283918),  # 131
+    (30.729389, 31.284299),  # 132
+    (30.729629, 31.284288),  # 133
+    (30.730148, 31.285527),  # 134
+    (30.730628, 31.285504),  # 135
+    (30.730614, 31.286075),  # 136
+    (30.731086, 31.286054),  # 137
+    (30.731082, 31.286736),  # 138
+    (30.731708, 31.286730),  # 139
+    (30.731718, 31.287432),  # 140
+    (30.731938, 31.287418),  # 141
+    (30.732178, 31.286226),  # 142
+    (30.732812, 31.286292),  # 143
+    (30.732768, 31.286708),  # 144
+    (30.733018, 31.286756),  # 145
+    (30.733099, 31.286145),  # 146
+    (30.733460, 31.286226),  # 147
+    (30.733320, 31.287100),  # 148 — مصحّح (كان lon=1.287117)
+    (30.733914, 31.287269),  # 149
+    (30.733991, 31.286705),  # 150
+    (30.734372, 31.286789),  # 151
+    (30.734334, 31.287032),  # 152
+    (30.735238, 31.287308),  # 153 — مصحّح (كان lon=11.287192)
+    (30.735163, 31.287714),  # 154
+    (30.735515, 31.287807),  # 155
+    (30.735485, 31.287994),  # 156
+    (30.735682, 31.288038),  # 157
+    (30.736004, 31.288855),  # 158
+    (30.735767, 31.288963),  # 159
+    (30.736113, 31.290061),  # 160
+    (30.736201, 31.290607),  # 161
+    (30.736611, 31.290531),  # 162
+    (30.736718, 31.292075),  # 163
+    (30.737504, 31.292097),  # 164
+    (30.737359, 31.293014),  # 165
+    (30.737856, 31.293283),  # 166
+    (30.737787, 31.294242),  # 167
+    (30.737386, 31.294170),  # 168
+    (30.736955, 31.295530),  # 169
+    (30.736568, 31.295382),  # 170
+    (30.736186, 31.296724),  # 171
+    (30.735956, 31.296656),  # 172
+    (30.735666, 31.297535),  # 173
+    (30.735786, 31.297608),  # 174
+    (30.735754, 31.297701),  # 175
+    (30.736233, 31.297994),  # 176
+    (30.735298, 31.300357),  # 177
+    (30.735131, 31.300549),  # 178
+    (30.735560, 31.300958),  # 179
+    (30.735970, 31.301115),  # 180
+    (30.735685, 31.302161),  # 181
+    (30.735944, 31.302214),  # 182
+    (30.735817, 31.302683),  # 183
+    (30.735475, 31.301738),  # 184
+    (30.734499, 31.301261),  # 185
+    (30.734008, 31.302903),  # 186
+    (30.734462, 31.303135),  # 187
+    (30.734278, 31.303673),  # 188
+    (30.734144, 31.303502),  # 189
+    (30.734085, 31.303215),  # 190
+    (30.733325, 31.302837),  # 191
+    (30.733228, 31.303085),  # 192
+    (30.733124, 31.303040),  # 193
+    (30.732857, 31.304064),  # 194
+    (30.732406, 31.303793),  # 195
+    (30.732351, 31.304903),  # 196
+    (30.731808, 31.304799),  # 197
+    (30.731910, 31.304483),  # 198
+    (30.731008, 31.304118),  # 199
+    (30.731014, 31.304281),  # 200
+    (30.730883, 31.304519),  # 201
+    (30.730988, 31.303862),  # 202
+    (30.729890, 31.303468),  # 203
+    (30.729939, 31.303235),  # 204
+    (30.729349, 31.303288),  # 205
+    (30.730267, 31.302811),  # إغلاق
 ]
 
 
@@ -595,13 +724,12 @@ polygon1, polygon2 = build_polygons()
 
 
 def parse_dms(text: str):
-    """تحليل صيغة DMS — مثال: 30°43'38.3\"N 31°17'4.7\"E"""
     parts = re.findall(r"(\d+)[°](\d+)['](\d+\.?\d*)[\"]([NSEW])", text)
     if len(parts) < 2:
         return None
     vals = []
     for d, m, s, direction in parts:
-        v = float(d) + float(m) / 60 + float(s) / 3600
+        v = float(d) + float(m)/60 + float(s)/3600
         if direction in ("S", "W"):
             v = -v
         vals.append(v)
@@ -609,7 +737,6 @@ def parse_dms(text: str):
 
 
 def parse_coords(text: str):
-    """تحليل الإحداثيات — يقبل الصيغة العشرية و DMS"""
     try:
         parts = text.replace(",", " ").split()
         if len(parts) >= 2:
@@ -623,7 +750,6 @@ def parse_coords(text: str):
 
 @st.cache_data(show_spinner=False)
 def build_map(lat: float, lon: float, is_inside: bool):
-    """بناء خريطة Folium مع طبقات Google"""
     m = folium.Map(
         location=[lat, lon],
         zoom_start=16,
@@ -631,8 +757,6 @@ def build_map(lat: float, lon: float, is_inside: bool):
         control_scale=True,
         tiles=None,
     )
-
-    # طبقتا خرائط Google
     folium.TileLayer(
         tiles="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
         attr="Google Satellite",
@@ -644,7 +768,6 @@ def build_map(lat: float, lon: float, is_inside: bool):
         name="🗺️ خريطة الشوارع",
     ).add_to(m)
 
-    # حدود المنطقتين
     poly_style = dict(
         color="#d97706", weight=2.2,
         fillColor="#d97706", fillOpacity=0.07,
@@ -659,7 +782,6 @@ def build_map(lat: float, lon: float, is_inside: bool):
         tooltip="<b style='font-family:Cairo'>المنطقة الثانية</b>",
     ).add_to(m)
 
-    # نقطة الموقع — حلقات متداخلة
     pin_color = "#059669" if is_inside else "#dc2626"
     status_ar = "✅ داخل الحيز" if is_inside else "⛔ خارج الحيز"
 
@@ -697,7 +819,7 @@ def build_map(lat: float, lon: float, is_inside: bool):
 # 5.  الواجهة
 # ══════════════════════════════════════════════════════════════════
 
-# ── الشريط العلوي ─────────────────────────────────────────────────
+# ── الشريط العلوي ──
 st.markdown("""
 <div class="topbar">
     <div class="brand">
@@ -713,7 +835,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── الـ Hero ───────────────────────────────────────────────────────
+# ── Hero ──
 st.markdown("""
 <div class="hero">
     <div class="hero-eye">استعلام جغرافي دقيق</div>
@@ -725,12 +847,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── العمودان الرئيسيان ────────────────────────────────────────────
+# ── العمودان ──
 col_side, col_main = st.columns([1, 2.5], gap="medium")
 
-# ════════════════════════════
-#  العمود الأيسر — الإدخال
-# ════════════════════════════
+# ═══════════════════
+#  العمود الأيسر
+# ═══════════════════
 with col_side:
 
     # بطاقة GPS
@@ -770,10 +892,9 @@ with col_side:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # الفاصل
     st.markdown('<div class="or-div">أو أدخل يدوياً</div>', unsafe_allow_html=True)
 
-    # بطاقة الإدخال اليدوي
+    # بطاقة الإدخال
     st.markdown("""
     <div class="card">
         <div class="card-head">
@@ -794,16 +915,15 @@ with col_side:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # تلميح
     st.markdown(
         '<div class="tip">💡 انسخ الإحداثيات مباشرةً من خرائط جوجل ولصقها هنا</div>',
         unsafe_allow_html=True,
     )
 
 
-# ═════════════════════════════
-#  العمود الأيمن — النتيجة
-# ═════════════════════════════
+# ═══════════════════
+#  العمود الأيمن
+# ═══════════════════
 with col_main:
 
     if submitted:
@@ -812,11 +932,10 @@ with col_main:
         else:
             parsed = parse_coords(user_input)
             if parsed:
-                lat, lon   = parsed
-                pt         = Point(lon, lat)
-                is_inside  = polygon1.contains(pt) or polygon2.contains(pt)
+                lat, lon  = parsed
+                pt        = Point(lon, lat)
+                is_inside = polygon1.contains(pt) or polygon2.contains(pt)
 
-                # ── لوحة النتيجة ──
                 st.markdown('<div class="result-panel">', unsafe_allow_html=True)
 
                 if is_inside:
@@ -824,12 +943,8 @@ with col_main:
                     <div class="res-bar res-bar-in">
                         <span class="res-emoji">✅</span>
                         <div>
-                            <div class="res-title res-title-in">
-                                الموقع داخل الحيز العمراني المعتمد
-                            </div>
-                            <div class="res-desc">
-                                ضمن النطاق الرسمي المعتمد للتخطيط العمراني
-                            </div>
+                            <div class="res-title res-title-in">الموقع داخل الحيز العمراني المعتمد</div>
+                            <div class="res-desc">ضمن النطاق الرسمي المعتمد للتخطيط العمراني</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -838,17 +953,12 @@ with col_main:
                     <div class="res-bar res-bar-out">
                         <span class="res-emoji">⛔</span>
                         <div>
-                            <div class="res-title res-title-out">
-                                الموقع خارج الحيز العمراني
-                            </div>
-                            <div class="res-desc">
-                                خارج النطاق العمراني الرسمي المعتمد حالياً
-                            </div>
+                            <div class="res-title res-title-out">الموقع خارج الحيز العمراني</div>
+                            <div class="res-desc">خارج النطاق العمراني الرسمي المعتمد حالياً</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
 
-                # ── سطر الإحداثيات ──
                 st.markdown(f"""
                 <div class="coords-row">
                     <span class="coords-dot"></span>
@@ -857,10 +967,6 @@ with col_main:
                         <div class="coords-val">{lat:.6f} &nbsp;,&nbsp; {lon:.6f}</div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
-
-                # ── رأس الخريطة ──
-                st.markdown("""
                 <div class="map-head">
                     <span class="map-head-title">🗺️ الخريطة التفاعلية</span>
                     <span class="map-live-badge">● مباشر</span>
@@ -869,10 +975,10 @@ with col_main:
 
                 st.markdown("</div>", unsafe_allow_html=True)
 
-                # ── الخريطة ──
                 with st.spinner("جارٍ تحميل الخريطة…"):
                     folium_map = build_map(lat, lon, is_inside)
-                    st_folium(folium_map, width="100%", height=465, returned_objects=[])
+                    st_folium(folium_map, width="100%", height=465,
+                              returned_objects=[], key="result_map")
 
             else:
                 st.error(
@@ -880,7 +986,6 @@ with col_main:
                 )
 
     else:
-        # ── حالة الانتظار ──
         st.markdown("""
         <div class="placeholder">
             <div class="ph-icon">🗺️</div>
