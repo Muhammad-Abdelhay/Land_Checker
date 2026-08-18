@@ -252,6 +252,34 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
 }
 .or-div::before,.or-div::after { content:''; flex:1; height:1px; background:var(--ink-100); }
 
+/* ── INNER DIVIDER (داخل البطاقة الموحّدة) ── */
+.inner-div {
+    display    : flex;
+    align-items: center;
+    gap        : .7rem;
+    margin     : 1rem 0 .85rem;
+    font-size  : .7rem;
+    font-weight: 600;
+    color      : var(--ink-200);
+    letter-spacing: .06em;
+}
+.inner-div::before,.inner-div::after {
+    content   : '';
+    flex      : 1;
+    height    : 1px;
+    background: var(--ink-100);
+}
+
+/* ── INNER SECTION HEAD (داخل البطاقة الموحّدة) ── */
+.inner-section-head {
+    display      : flex;
+    align-items  : center;
+    gap          : 9px;
+    margin-bottom: .85rem;
+    padding-bottom: .7rem;
+    border-bottom: 1px solid var(--ink-100);
+}
+
 /* ── GPS SUCCESS ── */
 .gps-ok {
     display    : flex;
@@ -855,9 +883,10 @@ col_side, col_main = st.columns([1, 2.5], gap="medium")
 # ═══════════════════
 with col_side:
 
-    # بطاقة GPS
+    # ── بطاقة موحّدة: GPS + الإدخال ──
     st.markdown("""
     <div class="card">
+
         <div class="card-head">
             <span class="card-icon">📡</span>
             <span class="card-title">تحديد الموقع عبر GPS</span>
@@ -890,14 +919,12 @@ with col_side:
         except Exception:
             pass
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    # ── فاصل داخلي ──
+    st.markdown('<div class="inner-div">أو أدخل يدوياً</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="or-div">أو أدخل يدوياً</div>', unsafe_allow_html=True)
-
-    # بطاقة الإدخال
+    # ── قسم الإدخال داخل نفس البطاقة ──
     st.markdown("""
-    <div class="card">
-        <div class="card-head">
+        <div class="inner-section-head">
             <span class="card-icon">✏️</span>
             <span class="card-title">إدخال الإحداثيات</span>
         </div>
@@ -913,10 +940,10 @@ with col_side:
         )
         submitted = st.form_submit_button("🔍  بدء الفحص", use_container_width=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)  # إغلاق .card
 
     st.markdown(
-        '<div class="tip">💡 انسخ الإحداثيات مباشرةً من خرائط جوجل ولصقها هنا</div>',
+        '<div class="tip">💡 انسخ الإحداثيات مباشرةً من خرائط جوجل والصقها هنا</div>',
         unsafe_allow_html=True,
     )
 
@@ -969,7 +996,7 @@ with col_main:
                 </div>
                 <div class="map-head">
                     <span class="map-head-title">🗺️ الخريطة التفاعلية</span>
-                    <span class="map-live-badge">● مباشر</span>
+                    <span class="map-live-badge"></span>
                 </div>
                 """, unsafe_allow_html=True)
 
