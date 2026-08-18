@@ -257,7 +257,7 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     display    : flex;
     align-items: center;
     gap        : .7rem;
-    margin     : 1rem 0 .85rem;
+    margin     : 0 0 .5rem;
     font-size  : .7rem;
     font-weight: 600;
     color      : var(--ink-200);
@@ -270,13 +270,26 @@ section[data-testid="stSidebar"] { background: var(--white) !important; }
     background: var(--ink-100);
 }
 
-/* ── INNER SECTION HEAD (داخل البطاقة الموحّدة) ── */
-.inner-section-head {
+/* ── UNIFIED CARD SECTIONS ── */
+.unified-card {
+    background   : var(--white);
+    border       : 1px solid var(--ink-100);
+    border-radius: var(--r-md);
+    box-shadow   : var(--s-xs);
+    overflow     : hidden;
+    transition   : border-color .25s, box-shadow .25s;
+    animation    : fadeUp .5s .1s ease both;
+    margin-bottom: .4rem;
+}
+.unified-card:hover { border-color:var(--gold-bdr); box-shadow:var(--s-sm); }
+.section-gps   { padding: 1rem 1.15rem .9rem; }
+.section-input { padding: .85rem 1.15rem 1rem; }
+.sec-head {
     display      : flex;
     align-items  : center;
     gap          : 9px;
-    margin-bottom: .85rem;
-    padding-bottom: .7rem;
+    margin-bottom: .75rem;
+    padding-bottom: .65rem;
     border-bottom: 1px solid var(--ink-100);
 }
 
@@ -883,15 +896,17 @@ col_side, col_main = st.columns([1, 2.5], gap="medium")
 # ═══════════════════
 with col_side:
 
-    # ── بطاقة موحّدة: GPS + الإدخال ──
+    # ── رأس قسم GPS ──
     st.markdown("""
-    <div class="card">
-
-        <div class="card-head">
-            <span class="card-icon">📡</span>
-            <span class="card-title">تحديد الموقع عبر GPS</span>
+    <div class="unified-card">
+        <div class="section-gps">
+            <div class="sec-head">
+                <span class="card-icon">📡</span>
+                <span class="card-title">تحديد الموقع عبر GPS</span>
+            </div>
+            <p class="card-hint">فعّل الزر لالتقاط إحداثياتك الحالية تلقائياً</p>
         </div>
-        <p class="card-hint">فعّل الزر لالتقاط إحداثياتك الحالية تلقائياً</p>
+    </div>
     """, unsafe_allow_html=True)
 
     st.button(
@@ -922,12 +937,16 @@ with col_side:
     # ── فاصل داخلي ──
     st.markdown('<div class="inner-div">أو أدخل يدوياً</div>', unsafe_allow_html=True)
 
-    # ── قسم الإدخال داخل نفس البطاقة ──
+    # ── رأس قسم الإدخال ──
     st.markdown("""
-        <div class="inner-section-head">
-            <span class="card-icon">✏️</span>
-            <span class="card-title">إدخال الإحداثيات</span>
+    <div class="unified-card">
+        <div class="section-input">
+            <div class="sec-head">
+                <span class="card-icon">✏️</span>
+                <span class="card-title">إدخال الإحداثيات</span>
+            </div>
         </div>
+    </div>
     """, unsafe_allow_html=True)
 
     with st.form("coord_form", clear_on_submit=False):
@@ -939,8 +958,6 @@ with col_side:
             help='الصيغة العشرية: 30.727313, 31.284638  |  DMS: 30°43\'38.3"N 31°17\'4.7"E',
         )
         submitted = st.form_submit_button("🔍  بدء الفحص", use_container_width=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)  # إغلاق .card
 
     st.markdown(
         '<div class="tip">💡 انسخ الإحداثيات مباشرةً من خرائط جوجل والصقها هنا</div>',
@@ -996,7 +1013,7 @@ with col_main:
                 </div>
                 <div class="map-head">
                     <span class="map-head-title">🗺️ الخريطة التفاعلية</span>
-                    <span class="map-live-badge"></span>
+                    <span class="map-live-badge">● مباشر</span>
                 </div>
                 """, unsafe_allow_html=True)
 
