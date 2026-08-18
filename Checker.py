@@ -953,16 +953,23 @@ with col_side:
         user_input = st.text_input(
             "خط العرض ، خط الطول",
             value=st.session_state.coord_input,
-            key="coord_input",
             placeholder="30.727313 , 31.284638",
             help='الصيغة العشرية: 30.727313, 31.284638  |  DMS: 30°43\'38.3"N 31°17\'4.7"E',
+            key="text_field",
         )
         submitted = st.form_submit_button("🔍  بدء الفحص", use_container_width=True)
 
+    # ── حفظ ما كتبه المستخدم يدوياً في session_state ──
+    if user_input:
+        st.session_state.coord_input = user_input
+
     st.markdown(
-        '<div class="tip">💡 انسخ الإحداثيات مباشرةً من خرائط جوجل والصقها هنا</div>',
+        '<div class="tip">💡 انسخ الإحداثيات مباشرةً من خرائط جوجل ولصقها هنا</div>',
         unsafe_allow_html=True,
     )
+
+# ── القيمة النهائية متاحة لكلا العمودين ──
+final_input = st.session_state.coord_input
 
 
 # ═══════════════════
@@ -971,10 +978,10 @@ with col_side:
 with col_main:
 
     if submitted:
-        if not user_input.strip():
-            st.warning("الرجاء إدخال الإحداثيات أولاً قبل الفحص.")
+        if not final_input.strip():
+            st.warning("الرجاء إدخال الإحداثيات أولاً أو تفعيل GPS.")
         else:
-            parsed = parse_coords(user_input)
+            parsed = parse_coords(final_input)
             if parsed:
                 lat, lon  = parsed
                 pt        = Point(lon, lat)
